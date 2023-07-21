@@ -15,7 +15,7 @@ async function buildPackage() {
   console.log(espToolsPath.value);
   console.log(espIdfPath.value);
   console.log(outputArchive.value);
-  
+
   // await invoke("build_package", {
   //   esp_tools_path: espToolsPath.value,
   //   esp_idf_path: espIdfPath.value,
@@ -27,9 +27,9 @@ async function buildPackage() {
 
 <template>
   <form @submit.prevent="buildPackage">
-    <PathSelector title="ESP Tools path" :path="espToolsPath"/>
-    <PathSelector title="ESP-IDF path" :path="espIdfPath"/>
-    <PathSelector title="Output archive" :path="outputArchive"/>
+    <PathSelector title="ESP Tools path" v-bind:path.sync="espToolsPath"/>
+    <PathSelector title="ESP-IDF path" :path.sync="espIdfPath"/>
+    <PathSelector title="Output archive" :path.sync="outputArchive"/>
     <button type="submit">Package</button>
   </form>
 </template>
