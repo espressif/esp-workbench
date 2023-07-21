@@ -107,3 +107,7 @@ button {
     background-color: #0f0f0f69;
   }
 }
+
+.path-input {
+    width: 30em;
+}

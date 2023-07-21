@@ -8,7 +8,9 @@ import { ref } from "vue";
 import { open } from '@tauri-apps/api/dialog';
 // import { invoke } from "@tauri-apps/api/tauri";
 
-const path = ref("");
+const props = defineProps(['path','title'])
+
+const pathRef = ref(props.path);
 const pathError = ref("");
 const pathSelectorDialogOpen = ref(false);
 
@@ -25,14 +27,14 @@ async function openPathSelectorDialog() {
   } else if (selected === null) {
   // user cancelled the selection
   } else {
-      path.value = selected.toString();
+      pathRef.value = selected.toString();
   }
 
   pathSelectorDialogOpen.value = false;
 }
 
 function validatePath() {
-  if (path.value === "") {
+  if (pathRef === "") {
     pathError.value = "Path cannot be empty";
   } else {
     pathError.value = "";
@@ -48,7 +50,7 @@ function pathSelectorDialogClosed() {
 }
 
 function pathSelectorDialogCancelled() {
-  path.value = "";
+  pathRef.value = "";
   pathError.value = "";
 }
 
@@ -59,9 +61,10 @@ function pathSelectorDialogOpened() {
 
 <template>
   <div class="row">
+    <label for="path-input">{{ title }}</label>
     <input
-      id="path-input"
-      v-model="path"
+      class="path-input"
+      v-model="pathRef"
       placeholder="Enter a path..."
       @change="pathChanged"
     />
