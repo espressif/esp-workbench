@@ -33,6 +33,7 @@ async function openPathSelectorDialog() {
   // user cancelled the selection
   } else {
       pathRef.value = selected.toString();
+      pathChanged();
   }
 
   pathSelectorDialogOpen.value = false;

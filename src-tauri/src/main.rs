@@ -3,8 +3,8 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn compress(source: String, target: String) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", source)
+fn compress(source_path: String, target_path:String) -> String {
+    format!("Source: {}\nTarget: {}", source_path, target_path)
 }
 
 fn main() {

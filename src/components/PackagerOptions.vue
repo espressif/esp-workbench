@@ -10,8 +10,11 @@ const espToolsPath = ref(props.espToolsPath);
 const outputArchive = ref(props.outputArchive);
 
 // Send request to backende to perform compression
-function compressPackage(sourcePath: String, target: String) {
-  invoke("compress", {source:'a', target:'b'})
+function compressPackage() {
+  let espIdf = espIdfPath.value ? espIdfPath.value.toString() : "";
+  let output = outputArchive.value ? outputArchive.value.toString() : "";
+
+  invoke("compress", {sourcePath: espIdf, targetPath: output})
     .then((message) => {
       console.log(message);
     })
@@ -27,5 +30,5 @@ function compressPackage(sourcePath: String, target: String) {
     <PathSelector title="ESP-IDF path" v-model:path="espToolsPath"/>
     <PathSelector title="Output archive" v-model:path="outputArchive"/>
 
-    <button @click="compressPackage(espIdfPath.value, outputArchive.value)">Log</button>
+    <button @click="compressPackage()">Log</button>
 </template>
