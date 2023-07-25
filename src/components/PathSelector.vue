@@ -8,12 +8,12 @@ import { ref } from "vue";
 import { open } from '@tauri-apps/api/dialog';
 // import { invoke } from "@tauri-apps/api/tauri";
 
-const emit = defineEmits<{
-  (e: 'change', id: number): void
-  (e: 'update:path', value: string): void
-}>()
+const props = defineProps({
+  path: String,
+  title: String
+})
 
-const props = defineProps(['path','title'])
+let emit = defineEmits(['update:path']);
 
 const pathRef = ref(props.path);
 const pathError = ref("");
@@ -33,10 +33,6 @@ async function openPathSelectorDialog() {
   // user cancelled the selection
   } else {
       pathRef.value = selected.toString();
-      // props.path = pathRef.value;
-      // emit path to parent component
-      
-     
   }
 
   pathSelectorDialogOpen.value = false;
@@ -48,11 +44,11 @@ function validatePath() {
   } else {
     pathError.value = "";
   }
-  emit("update:path", "abc");
 }
 
 function pathChanged() {
   validatePath();
+  emit('update:path', pathRef.value)
 }
 
 function pathSelectorDialogClosed() {

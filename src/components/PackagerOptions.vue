@@ -1,35 +1,31 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { invoke } from "@tauri-apps/api/tauri";
 import PathSelector from "./PathSelector.vue";
 
-// const props = defineProps(['espToolsPath']);
-const props = defineProps(['espToolsPath','espIdfPath','outputArchive']);
+const props = defineProps(['espIdfPath','espToolsPath','outputArchive']);
 
-const espToolsPath = ref("/Users/georgik/.espressif");
-const espIdfPath = ref("/Users/georgik/projects/esp-idf");
-const outputArchive = ref("/Users/georgik/my-esp-idf.zip");
+const espIdfPath = ref(props.espIdfPath);
+const espToolsPath = ref(props.espToolsPath);
+const outputArchive = ref(props.outputArchive);
 
-// Build package from ESP Tools and ESP-IDF
-async function buildPackage() {
-  // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-  console.log(espToolsPath.value);
-  console.log(espIdfPath.value);
-  console.log(outputArchive.value);
-
-  // await invoke("build_package", {
-  //   esp_tools_path: espToolsPath.value,
-  //   esp_idf_path: espIdfPath.value,
-  //   output_archive: outputArchive.value,
-  // });
+// Send request to backende to perform compression
+function compressPackage(sourcePath: String, target: String) {
+  invoke("compress", {source:'a', target:'b'})
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 </script>
 
 <template>
-  <form @submit.prevent="buildPackage">
-    <PathSelector title="ESP Tools path" v-bind:path.sync="espToolsPath"/>
-    <PathSelector title="ESP-IDF path" :path.sync="espIdfPath"/>
-    <PathSelector title="Output archive" :path.sync="outputArchive"/>
-    <button type="submit">Package</button>
-  </form>
+    <PathSelector title="ESP Tools path" v-model:path="espIdfPath"/>
+    <PathSelector title="ESP-IDF path" v-model:path="espToolsPath"/>
+    <PathSelector title="Output archive" v-model:path="outputArchive"/>
+
+    <button @click="compressPackage(espIdfPath.value, outputArchive.value)">Log</button>
 </template>
