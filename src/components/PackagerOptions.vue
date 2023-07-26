@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
+import { appWindow } from '@tauri-apps/api/window';
 import PathSelector from "./PathSelector.vue";
 
 const props = defineProps(['espIdfPath','espToolsPath','outputArchive']);
@@ -9,12 +10,15 @@ const espIdfPath = ref(props.espIdfPath);
 const espToolsPath = ref(props.espToolsPath);
 const outputArchive = ref(props.outputArchive);
 
+const buildStatus = ref("Idle");
+let register = appWindow.listen('progress', ({payload}) => buildStatus.value = payload.pct);
+
 // Send request to backende to perform compression
 function compressPackage() {
   let espIdf = espIdfPath.value ? espIdfPath.value.toString() : "";
   let output = outputArchive.value ? outputArchive.value.toString() : "";
 
-  invoke("compress", {sourcePath: espIdf, targetPath: output})
+  invoke("compress", {window: appWindow, sourcePath: espIdf, targetPath: output})
     .then((message) => {
       console.log(message);
     })
@@ -31,4 +35,5 @@ function compressPackage() {
     <PathSelector title="Output archive" v-model:path="outputArchive"/>
 
     <button @click="compressPackage()">Build package</button>
+    <div>Build status: {{ buildStatus }}</div>
 </template>

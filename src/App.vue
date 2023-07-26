@@ -1,19 +1,35 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+import { ref, onMounted } from "vue";
+import { invoke } from "@tauri-apps/api/tauri";
 import PathSelector from "./components/PathSelector.vue";
 import PackagerOptions from "./components/PackagerOptions.vue";
+
+
+const espIdfPath = ref("/Users/georgik/projects/esp-idf");
+const espToolsPath = ref("/Users/georgik/.espressif");
+const outputArchive = ref("/Users/georgik/esp-dev-env.zip");
+
+// onMounted(() => {
+//   invoke("get_user_home").then((user_home) => {
+//     console.log("User home:" + user_home);
+//     espIdfPath.value =  "/projects/esp-idf";
+//     espToolsPath.value = user_home + "/.espressif/esp-tools";
+//     outputArchive.value = user_home + "/esp-dev-env.zip";
+//   }).catch((error) => {
+//     console.error(error);
+//   });
+// });
+
 </script>
 
 <template>
   <div class="container">
     <h1>ESP Development Environment Packager</h1>
     <PackagerOptions
-      esp-idf-path="/home/georgik/projects/esp-idf"
-      esp-tools-path="/home/georgik/.espressif"
-      output-archive="/home/georgik/esp-idf.tar.gz"
+      :esp-idf-path="espIdfPath"
+      :esp-tools-path="espToolsPath"
+      :output-archive="outputArchive"
     />
-
   </div>
 </template>
 
