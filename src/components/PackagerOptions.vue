@@ -30,5 +30,5 @@ function compressPackage() {
     <PathSelector title="ESP-IDF path" v-model:path="espToolsPath"/>
     <PathSelector title="Output archive" v-model:path="outputArchive"/>
 
-    <button @click="compressPackage()">Log</button>
+    <button @click="compressPackage()">Build package</button>
 </template>

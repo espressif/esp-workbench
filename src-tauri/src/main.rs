@@ -3,8 +3,9 @@
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn compress(source_path: String, target_path:String) -> String {
-    format!("Source: {}\nTarget: {}", source_path, target_path)
+async fn compress(source_path: String, target_path:String) -> Result<String, ()> {
+    // format!("Source: {}\nTarget: {}", source_path, target_path);
+    Ok("Compression finished".to_string())
 }
 
 fn main() {

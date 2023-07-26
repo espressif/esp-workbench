@@ -8,7 +8,11 @@ import PackagerOptions from "./components/PackagerOptions.vue";
 <template>
   <div class="container">
     <h1>ESP Development Environment Packager</h1>
-    <PackagerOptions />
+    <PackagerOptions
+      esp-idf-path="/home/georgik/projects/esp-idf"
+      esp-tools-path="/home/georgik/.espressif"
+      output-archive="/home/georgik/esp-idf.tar.gz"
+    />
 
   </div>
 </template>
