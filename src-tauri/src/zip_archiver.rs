@@ -69,6 +69,10 @@ where
     let mut buffer = Vec::new();
     for entry in it {
         if is_abort_state(app.clone()) {
+            let payload = Payload {
+                pct: "Aborted".to_string(),
+            };
+            window.emit(PROGRESS_EVENT, payload).unwrap();
             return Ok(());
         }
         let path = entry.path();
@@ -104,6 +108,10 @@ where
         }
     }
     zip.finish()?;
+    let payload = Payload {
+        pct: "Complete".to_string(),
+    };
+    window.emit(PROGRESS_EVENT, payload).unwrap();
     Result::Ok(())
 }
 
