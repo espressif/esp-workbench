@@ -7,7 +7,11 @@ use walkdir::{DirEntry, WalkDir};
 use zip::result::ZipError;
 use zip::write::FileOptions;
 
-use tauri::Window;
+use tauri::{Window, Manager};
+use std::sync::{Arc, Mutex};
+
+// mod crate::app_state;
+use crate::app_state::{AppState, BuilderState};
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -18,6 +22,7 @@ const PROGRESS_EVENT: &str = "progress";
 
 pub fn zip_dir(
     window: Window,
+    app: tauri::AppHandle,
     src_dir: &str,
     dst_file: &str,
     method: zip::CompressionMethod,
@@ -32,12 +37,22 @@ pub fn zip_dir(
     let src_walkdir = WalkDir::new(src_dir);
     let src_it = src_walkdir.into_iter();
 
-    zip_iter(window, &mut src_it.filter_map(|e| e.ok()), src_dir, archive_file, method)?;
+    zip_iter(window, app, &mut src_it.filter_map(|e| e.ok()), src_dir, archive_file, method)?;
     Ok(())
+}
+
+fn is_abort_state(app: tauri::AppHandle) -> bool {
+    let state_mutex = app.state::<Mutex<AppState>>();
+    let mut state = state_mutex.lock().unwrap();
+    match state.builder {
+        BuilderState::Abort => true,
+        _ => false
+    }
 }
 
 fn zip_iter<T>(
     window: Window,
+    app: tauri::AppHandle,
     it: &mut dyn Iterator<Item = DirEntry>,
     prefix: &str,
     writer: T,
@@ -53,6 +68,13 @@ where
 
     let mut buffer = Vec::new();
     for entry in it {
+        if is_abort_state(app.clone()) {
+            let payload = Payload {
+                pct: "Aborted".to_string(),
+            };
+            window.emit(PROGRESS_EVENT, payload).unwrap();
+            return Ok(());
+        }
         let path = entry.path();
         let name = path.strip_prefix(Path::new(prefix)).unwrap();
 
@@ -86,6 +108,10 @@ where
         }
     }
     zip.finish()?;
+    let payload = Payload {
+        pct: "Complete".to_string(),
+    };
+    window.emit(PROGRESS_EVENT, payload).unwrap();
     Result::Ok(())
 }
 
