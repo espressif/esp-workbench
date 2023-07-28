@@ -27,6 +27,18 @@ function compressPackage() {
     });
 }
 
+// Send command to backend to abort running build process
+function abortBuild() {
+  invoke("abort_build")
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+
 </script>
 
 <template>
@@ -35,5 +47,6 @@ function compressPackage() {
     <PathSelector title="Output archive" v-model:path="outputArchive"/>
 
     <button @click="compressPackage()">Build package</button>
+    <button @click="abortBuild()">Abort build</button>
     <div>Build status: {{ buildStatus }}</div>
 </template>

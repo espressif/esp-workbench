@@ -27,7 +27,7 @@ enum Error {
 }
 
 #[tauri::command]
-async fn abort_builder(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
+async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
     let mut state = state_mutex.lock().unwrap();
     state.builder = BuilderState::Abort;
     Ok("ok".to_string())
@@ -35,15 +35,28 @@ async fn abort_builder(state_mutex: State<'_, Mutex<AppState>>) -> Result<String
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-async fn compress(window: Window, app: tauri::AppHandle, source_path: String, target_path:String) -> Result<String, ()> {
+async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, source_path: String, target_path:String) -> Result<String, ()> {
     // format!("Source: {}\nTarget: {}", source_path, target_path);
     let method = zip::CompressionMethod::Deflated;
     // window.emit("PROGRESS", payload).unwrap();
+
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Running;
+    }
+
     let result = zip_dir(window,app.clone(), source_path.as_str(), target_path.as_str(), method);
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Idle;
+    }
+
     match result {
         Ok(_) => Ok("Success".to_string()),
         Err(_) => Err(())
     }
+
+
 }
 
 // Comand to get the current user home
@@ -58,7 +71,7 @@ async fn get_user_home() -> Result<String, ()> {
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, get_user_home, abort_builder])
+        .invoke_handler(tauri::generate_handler![compress, get_user_home, abort_build])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
