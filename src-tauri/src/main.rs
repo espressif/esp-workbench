@@ -5,40 +5,41 @@ use std::sync::{Arc, Mutex};
 
 use dirs;
 
+mod app_state;
+use app_state::{AppState, BuilderState};
+
 mod zip_archiver;
 use zip_archiver::zip_dir;
 
 use serde::Serialize;
-
+use thiserror;
 use tauri::{State, Window};
 
-#[derive(Serialize, Clone)]
-pub(crate) struct BuilderState {
-    compression_state: String,
-}
-
-impl Default for BuilderState {
-    fn default() -> Self {
-        Self {
-            compression_state: "idle".to_string(),
-        }
-    }
+// Create a custom Error that we can return in Results
+#[derive(Debug, thiserror::Error)]
+enum Error {
+    // Implement std::io::Error for our Error enum
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    // Add a PoisonError, but we implement it manually later
+    #[error("the mutex was poisoned")]
+    PoisonError(String),
 }
 
 #[tauri::command]
-async fn set_builder_state(state_mutex: State<'_, Mutex<BuilderState>>) -> Result<BuilderState, Error> {
-    let mut state = state_mutex.lock()?;
-    state.compression_state = "running".to_string();
-    Ok(state.clone())
+async fn abort_builder(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
+    let mut state = state_mutex.lock().unwrap();
+    state.builder = BuilderState::Abort;
+    Ok("ok".to_string())
 }
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-async fn compress(window: Window, source_path: String, target_path:String) -> Result<String, ()> {
+async fn compress(window: Window, app: tauri::AppHandle, source_path: String, target_path:String) -> Result<String, ()> {
     // format!("Source: {}\nTarget: {}", source_path, target_path);
     let method = zip::CompressionMethod::Deflated;
     // window.emit("PROGRESS", payload).unwrap();
-    let result = zip_dir(window, source_path.as_str(), target_path.as_str(), method);
+    let result = zip_dir(window,app.clone(), source_path.as_str(), target_path.as_str(), method);
     match result {
         Ok(_) => Ok("Success".to_string()),
         Err(_) => Err(())
@@ -56,8 +57,8 @@ async fn get_user_home() -> Result<String, ()> {
 
 fn main() {
     tauri::Builder::default()
-        .manage(Mutex::new(BuilderState::default()))
-        .invoke_handler(tauri::generate_handler![compress, get_user_home])
+        .manage(Mutex::new(AppState::default()))
+        .invoke_handler(tauri::generate_handler![compress, get_user_home, abort_builder])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
