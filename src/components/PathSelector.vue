@@ -15,7 +15,7 @@ const props = defineProps({
 
 let emit = defineEmits(['update:path']);
 
-const pathRef = ref(props.path);
+// const pathRef = ref(props.path);
 const pathError = ref("");
 const pathSelectorDialogOpen = ref(false);
 
@@ -32,15 +32,16 @@ async function openPathSelectorDialog() {
   } else if (selected === null) {
   // user cancelled the selection
   } else {
-      pathRef.value = selected.toString();
-      pathChanged();
+    emit('update:path', selected.toString());
+     // props.path.value = selected.toString();
+     // pathChanged();
   }
 
   pathSelectorDialogOpen.value = false;
 }
 
 function validatePath() {
-  if (pathRef.value === "") {
+  if (props.path.value === "") {
     pathError.value = "Path cannot be empty";
   } else {
     pathError.value = "";
@@ -48,8 +49,8 @@ function validatePath() {
 }
 
 function pathChanged() {
-  validatePath();
-  emit('update:path', pathRef.value)
+//   validatePath();
+  emit('update:path', props.path.value)
 }
 
 // function pathSelectorDialogClosed() {
@@ -71,9 +72,9 @@ function pathChanged() {
     <label for="path-input">{{ title }}</label>
     <input
       class="path-input"
-      v-model="pathRef"
+      :value="props.path"
       placeholder="Enter a path..."
-      @change="pathChanged"
+      @input="value => emit('update:path', value.target.value)"
     />
     <button type="button" @click="openPathSelectorDialog">...</button>
   </div>
