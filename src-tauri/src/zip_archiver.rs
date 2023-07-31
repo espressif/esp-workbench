@@ -1,6 +1,8 @@
+use std::io;
 use std::io::{Seek, Write};
 use std::io::Read;
 use std::iter::Iterator;
+use std::fs;
 use std::fs::File;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
@@ -8,7 +10,7 @@ use zip::result::ZipError;
 use zip::write::FileOptions;
 
 use tauri::{Window, Manager};
-use std::sync::{Arc, Mutex};
+use std::sync::{Mutex};
 
 // mod crate::app_state;
 use crate::app_state::{AppState, BuilderState};
@@ -115,3 +117,70 @@ where
     Result::Ok(())
 }
 
+
+pub fn unzip(
+    window: Window,
+    app: tauri::AppHandle,
+    file_path: String,
+    output_directory: String
+) -> Result<(), ZipError> {
+    let file_name = std::path::Path::new(&file_path);
+    let file = fs::File::open(&file_name).unwrap();
+
+    let mut archive = zip::ZipArchive::new(file).unwrap();
+
+    for i in 0..archive.len() {
+        if is_abort_state(app.clone()) {
+            let payload = Payload {
+                pct: "Aborted".to_string(),
+            };
+            window.emit(PROGRESS_EVENT, payload).unwrap();
+            return Ok(());
+        }
+
+        let mut file = archive.by_index(i).unwrap();
+        let file_outpath = match file.enclosed_name() {
+            Some(path) => path.to_owned(),
+            None => continue,
+        };
+
+        // Add path prefix to extract the file
+        let mut outpath = std::path::PathBuf::new();
+        outpath.push(&output_directory);
+        outpath.push(file_outpath);
+
+        {
+            let comment = file.comment();
+            if !comment.is_empty() {
+                println!("File {} comment: {}", i, comment);
+            }
+        }
+
+        if (&*file.name()).ends_with('/') {
+            println!("* extracted: \"{}\"", outpath.display());
+            fs::create_dir_all(&outpath).unwrap();
+        } else {
+            let message = format!("extracted {} as {} ...", outpath.display(), file.size());
+            let payload = Payload {
+                pct: message.to_string(),
+            };
+            window.emit(PROGRESS_EVENT, payload).unwrap();
+            println!(
+                "{}",
+                message
+            );
+            if let Some(p) = outpath.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(&p).unwrap();
+                }
+            }
+            let mut outfile = fs::File::create(&outpath).unwrap();
+            io::copy(&mut file, &mut outfile).unwrap();
+        }
+    }
+    let payload = Payload {
+        pct: "Complete".to_string(),
+    };
+    window.emit(PROGRESS_EVENT, payload).unwrap();
+    Ok(())
+}

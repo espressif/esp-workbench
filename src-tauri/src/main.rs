@@ -9,7 +9,7 @@ mod app_state;
 use app_state::{AppState, BuilderState};
 
 mod zip_archiver;
-use zip_archiver::zip_dir;
+use zip_archiver::{zip_dir, unzip};
 
 use serde::Serialize;
 use thiserror;
@@ -33,12 +33,10 @@ async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, 
     Ok("ok".to_string())
 }
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+// Command to copress directories into a archive file.
 #[tauri::command]
 async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, source_path: String, target_path:String) -> Result<String, ()> {
-    // format!("Source: {}\nTarget: {}", source_path, target_path);
     let method = zip::CompressionMethod::Deflated;
-    // window.emit("PROGRESS", payload).unwrap();
 
     {
         let mut state = state_mutex.lock().unwrap();
@@ -55,9 +53,28 @@ async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, 
         Ok(_) => Ok("Success".to_string()),
         Err(_) => Err(())
     }
-
-
 }
+
+// Command to decompress a archive file into a directory.
+#[tauri::command]
+async fn decompress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, source_path: String, target_path:String) -> Result<String, ()> {
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Running;
+    }
+
+    let result = unzip(window,app.clone(), source_path, target_path);
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Idle;
+    }
+
+    match result {
+        Ok(_) => Ok("Success".to_string()),
+        Err(_) => Err(())
+    }
+}
+
 
 // Comand to get the current user home
 #[tauri::command]
@@ -71,7 +88,7 @@ async fn get_user_home() -> Result<String, ()> {
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, get_user_home, abort_build])
+        .invoke_handler(tauri::generate_handler![compress, decompress, get_user_home, abort_build])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
