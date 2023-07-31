@@ -4,24 +4,23 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow } from '@tauri-apps/api/window';
 import PathSelector from "./PathSelector.vue";
 
-const props = defineProps(['espIdfPath','espToolsPath','outputArchive']);
-
-const espIdfPath = ref(props.espIdfPath);
-const espToolsPath = ref(props.espToolsPath);
-const outputArchive = ref(props.outputArchive);
+const props = defineProps({
+  espIdfPath: String,
+  espToolsPath: String,
+  outputArchive: String
+});
 
 const buildStatus = ref("Idle");
 
 type Payload = {
-    pct: string,
+  pct: string,
 }
 
 appWindow.listen('progress', ({payload}) => buildStatus.value = (payload as Payload).pct);
 
-// Send request to backende to perform compression
 function compressPackage() {
-  let espIdf = espIdfPath.value ? espIdfPath.value.toString() : "";
-  let output = outputArchive.value ? outputArchive.value.toString() : "";
+  let espIdf = props.espIdfPath;
+  let output = props.outputArchive;
 
   invoke("compress", {window: appWindow, sourcePath: espIdf, targetPath: output})
     .then((message) => {
@@ -32,7 +31,6 @@ function compressPackage() {
     });
 }
 
-// Send command to backend to abort running build process
 function abortBuild() {
   invoke("abort_build")
     .then((message) => {
@@ -43,15 +41,22 @@ function abortBuild() {
     });
 }
 
-
 </script>
 
 <template>
-    <PathSelector title="ESP Tools path" v-model:path="espIdfPath"/>
-    <PathSelector title="ESP-IDF path" v-model:path="espToolsPath"/>
-    <PathSelector title="Output archive" v-model:path="outputArchive"/>
-
-    <button @click="compressPackage()">Build package</button>
-    <button @click="abortBuild()">Abort build</button>
-    <div>Build status: {{ buildStatus }}</div>
+  <PathSelector title="ESP-IDF path"
+    :path="props.espIdfPath"
+    @update:path="(value: string) => $emit('update:espIdfPath', value)"
+  />
+  <PathSelector title="ESP Tools path"
+    :path="props.espToolsPath"
+    @update:path="(value: string) => $emit('update:espToolsPath', value)"
+  />
+  <PathSelector title="Output archive"
+    :path="props.outputArchive"
+    @update:path="(value: string) => $emit('update:outputArchive', value)"
+  />
+  <button @click="compressPackage()">Build package</button>
+  <button @click="abortBuild()">Abort build</button>
+  <div>Build status: {{ buildStatus }}</div>
 </template>
