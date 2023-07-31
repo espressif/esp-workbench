@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { invoke } from "@tauri-apps/api/tauri";
-import PathSelector from "./components/PathSelector.vue";
+import { ref } from "vue";
 import PackagerOptions from "./components/PackagerOptions.vue";
 
 

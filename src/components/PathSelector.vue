@@ -40,7 +40,7 @@ async function openPathSelectorDialog() {
 }
 
 function validatePath() {
-  if (pathRef === "") {
+  if (pathRef.value === "") {
     pathError.value = "Path cannot be empty";
   } else {
     pathError.value = "";
@@ -52,18 +52,18 @@ function pathChanged() {
   emit('update:path', pathRef.value)
 }
 
-function pathSelectorDialogClosed() {
-  validatePath();
-}
+// function pathSelectorDialogClosed() {
+//   validatePath();
+// }
 
-function pathSelectorDialogCancelled() {
-  pathRef.value = "";
-  pathError.value = "";
-}
+// function pathSelectorDialogCancelled() {
+//   pathRef.value = "";
+//   pathError.value = "";
+// }
 
-function pathSelectorDialogOpened() {
-  validatePath();
-}
+// function pathSelectorDialogOpened() {
+//   validatePath();
+// }
 </script>
 
 <template>

@@ -11,7 +11,12 @@ const espToolsPath = ref(props.espToolsPath);
 const outputArchive = ref(props.outputArchive);
 
 const buildStatus = ref("Idle");
-let register = appWindow.listen('progress', ({payload}) => buildStatus.value = payload.pct);
+
+type Payload = {
+    pct: string,
+}
+
+appWindow.listen('progress', ({payload}) => buildStatus.value = (payload as Payload).pct);
 
 // Send request to backende to perform compression
 function compressPackage() {
