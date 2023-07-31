@@ -31,6 +31,31 @@ function compressPackage() {
     });
 }
 
+function deployPackage() {
+  let espIdf = props.espIdfPath;
+  let zipArchive = props.outputArchive;
+
+  invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf})
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
+function runInstallScript() {
+  let shellScriptPath = props.espIdfPath + "/install.sh";
+
+  invoke("run_esp_idf_install_script", {window: appWindow, targetPath: shellScriptPath})
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
 function abortBuild() {
   invoke("abort_build")
     .then((message) => {
@@ -57,6 +82,8 @@ function abortBuild() {
     @update:path="(value: string) => $emit('update:outputArchive', value)"
   />
   <button @click="compressPackage()">Build package</button>
+  <button @click="deployPackage()">Deploy package</button>
+  <button @click="runInstallScript()">Run ESP-IDF install script</button>
   <button @click="abortBuild()">Abort build</button>
   <div>Build status: {{ buildStatus }}</div>
 </template>
