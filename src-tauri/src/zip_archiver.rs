@@ -12,7 +12,6 @@ use zip::write::FileOptions;
 use tauri::{Window, Manager};
 use std::sync::{Mutex};
 
-// mod crate::app_state;
 use crate::app_state::{AppState, BuilderState};
 
 #[derive(Clone, serde::Serialize)]
@@ -144,10 +143,19 @@ pub fn unzip(
             None => continue,
         };
 
+        let mut components = file_outpath.components();
+
+        // Skip the first component (the top level directory)
+        components.next();
+
         // Add path prefix to extract the file
         let mut outpath = std::path::PathBuf::new();
         outpath.push(&output_directory);
-        outpath.push(file_outpath);
+
+        // Append the rest of the components
+        for component in components {
+            outpath.push(component);
+        }
 
         {
             let comment = file.comment();

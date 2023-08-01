@@ -70,11 +70,27 @@ function downloadEspIdf() {
     });
 }
 
-function installEspIdf() {
-  downloadEspIdf();
-  deployPackage();
-  runInstallScript();
+async function installEspIdf() {
+  try {
+    let output = props.outputArchive;
+    let version = props.espIdfVersion;
+
+    // Await the completion of the download
+    await invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output});
+
+    // Await the completion of the decompression
+    let espIdf = props.espIdfPath;
+    let zipArchive = props.outputArchive;
+    await invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf});
+
+    // Await the completion of the script execution
+    let shellScriptPath = props.espIdfPath + "/install.sh";
+    await invoke("run_esp_idf_install_script", {window: appWindow, targetPath: shellScriptPath});
+  } catch (error) {
+    console.error(error);
+  }
 }
+
 
 function abortBuild() {
   invoke("abort_build")
@@ -113,5 +129,5 @@ function abortBuild() {
   <!-- <button @click="deployPackage()">Deploy package</button> -->
   <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
   <button @click="abortBuild()">Cancel</button>
-  <div>Build status: {{ buildStatus }}</div>
+  <div>{{ buildStatus }}</div>
 </template>
