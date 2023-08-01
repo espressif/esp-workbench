@@ -87,6 +87,31 @@ pub async fn download_esp_idf(window: Window,
     println!("Downloading ESP-IDF from {}", url);
     let dest_path = Path::new(&dest_path);
 
+    // If the file exists, check if it is not corrupted
+    if dest_path.exists() {
+        let is_file_corrupted = {
+            match check_zip(&dest_path) {
+                Ok(()) => {
+                    println!("ESP-IDF already downloaded and the file is not corrupted");
+                    return Ok(());
+                },
+                Err(err) => {
+                    eprintln!("The file is corrupted: {}", err);
+                    true
+                }
+            }
+        };
+
+        if is_file_corrupted {
+            tokio::fs::remove_file(&dest_path).await.unwrap();
+        }
+    }
+
+    // Ensure parent directory exists
+    if let Some(parent_path) = dest_path.parent() {
+        tokio::fs::create_dir_all(parent_path).await.unwrap();
+    }
+
     match download_file(window, app, &url, dest_path).await {
         Ok(_) => {
             println!("ESP-IDF downloaded successfully");
@@ -97,4 +122,17 @@ pub async fn download_esp_idf(window: Window,
             Err(())
         }
     }
+}
+
+
+
+fn check_zip(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let reader = std::fs::File::open(path)?;
+    let mut archive = zip::ZipArchive::new(reader)?;
+
+    for i in 0..archive.len() {
+        let file = archive.by_index(i)?;
+    }
+
+    Ok(())
 }
