@@ -168,7 +168,7 @@ pub fn unzip(
             println!("* extracted: \"{}\"", outpath.display());
             fs::create_dir_all(&outpath).unwrap();
         } else {
-            let message = format!("extracted {} as {} ...", outpath.display(), file.size());
+            let message = format!("extracted {}", outpath.display());
             let payload = Payload {
                 pct: message.to_string(),
             };

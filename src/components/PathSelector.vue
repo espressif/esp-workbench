@@ -68,8 +68,8 @@ function pathChanged() {
 </script>
 
 <template>
-  <div class="row">
-    <label for="path-input">{{ title }}</label>
+  <div>
+    <label for="path-input">{{ title }}: </label>
     <input
       class="path-input"
       :value="props.path"

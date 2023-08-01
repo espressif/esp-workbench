@@ -12,7 +12,7 @@ const props = defineProps({
   outputArchive: String
 });
 
-const buildStatus = ref("Idle");
+const buildStatus = ref("");
 
 type Payload = {
   pct: string,
@@ -105,25 +105,46 @@ function abortBuild() {
     :path="props.espIdfPath"
     @update:path="(value: string) => $emit('update:espIdfPath', value)"
   /> -->
-  <VersionSelector
-    :selectedVersion="props.espIdfVersion"
-    @update:selectedVersion="(value: string) => $emit('update:espIdfVersion', value)"
-  />
-  <PathSelector title="ESP Tools path"
-    :path="props.espToolsPath"
-    @update:path="(value: string) => $emit('update:espToolsPath', value)"
-  />
-  <div>ESP-IDF Path: {{ props.espIdfPath }}</div>
-  <div>ESP-IDF ZIP: {{ props.outputArchive }}</div>
-  <!-- <PathSelector title="Output archive"
-    :path="props.outputArchive"
-    @update:path="(value: string) => $emit('update:outputArchive', value)"
-  /> -->
-  <!-- <button @click="compressPackage()">Build package</button> -->
-  <button @click="installEspIdf()">Install ESP-IDF</button>
-  <!-- <button @click="downloadEspIdf()">Download ESP-IDF package</button> -->
-  <!-- <button @click="deployPackage()">Deploy package</button> -->
-  <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
-  <button @click="abortBuild()">Cancel</button>
+  <div class="packager-container">
+    <VersionSelector
+      :selectedVersion="props.espIdfVersion"
+      @update:selectedVersion="(value: string) => $emit('update:espIdfVersion', value)"
+    />
+    <PathSelector title="ESP Tools path"
+      :path="props.espToolsPath"
+      @update:path="(value: string) => $emit('update:espToolsPath', value)"
+    />
+    <div>ESP-IDF Path: {{ props.espIdfPath }}</div>
+    <!-- <div>ESP-IDF ZIP: {{ props.outputArchive }}</div> -->
+    <!-- <PathSelector title="Output archive"
+      :path="props.outputArchive"
+      @update:path="(value: string) => $emit('update:outputArchive', value)"
+    /> -->
+    <div class="button-container">
+      <!-- <button @click="compressPackage()">Build package</button> -->
+      <button @click="installEspIdf()">Install ESP-IDF</button>
+      <!-- <button @click="downloadEspIdf()">Download ESP-IDF package</button> -->
+      <!-- <button @click="deployPackage()">Deploy package</button> -->
+      <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
+      <button @click="abortBuild()">Cancel</button>
+    </div>
+  </div>
   <div>{{ buildStatus }}</div>
 </template>
+
+
+<style scoped>
+.button-container {
+  justify-content: space-between;
+  padding-top: 1em;
+  padding-bottom: 1em;
+  padding-left: 30em;
+}
+
+.packager-container {
+  padding-top: 3em;
+  padding-left: 30%;
+  text-align: left;
+}
+
+</style>

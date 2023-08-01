@@ -53,6 +53,7 @@ pub fn run_install_script(
             .stderr(Stdio::piped())
             .spawn()
             .expect("Failed to launch script");
+        #[cfg(windows)]
         let mut child = Command::new("cmd")
             .arg("/c")
             .arg(file_path)
