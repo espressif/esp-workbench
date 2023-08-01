@@ -23,7 +23,8 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <h1>ESP Development Environment Packager</h1>
+    <h1>ESP Helm</h1>
+    <div>Navigate with ease in the world of ESP32</div>
     <PackagerOptions
       v-model:esp-idf-path="espIdfPath"
       v-model:esp-tools-path="espToolsPath"

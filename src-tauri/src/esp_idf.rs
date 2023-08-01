@@ -10,6 +10,9 @@ use tauri::{Window, Manager};
 use crate::app_state::{AppState, BuilderState};
 use std::sync::{Mutex};
 
+use std::path::Path;
+use crate::download::download_file;
+
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     pct: String,
@@ -76,3 +79,18 @@ pub fn run_install_script(
 
 }
 
+pub async fn download_esp_idf(version: String, dest_path: String) -> Result<(), ()> {
+    let url = format!("https://github.com/espressif/esp-idf/releases/download/v{}/esp-idf-v{}.zip", version, version);
+    // let dest_path = Path::new(&dest_path);
+
+    match download_file(&url, dest_path.as_str()).await {
+        Ok(_) => {
+            println!("ESP-IDF downloaded successfully");
+            Ok(())
+        }
+        Err(err) => {
+            eprintln!("Failed to download ESP-IDF: {}", err);
+            Err(())
+        }
+    }
+}

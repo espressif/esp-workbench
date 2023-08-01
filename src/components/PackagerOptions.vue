@@ -56,6 +56,17 @@ function runInstallScript() {
     });
 }
 
+function downloadEspIdf() {
+  let output = props.outputArchive;
+  invoke("download_esp_idf", {window: appWindow, version: '4.2', targetPath: output})
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
 function abortBuild() {
   invoke("abort_build")
     .then((message) => {
@@ -82,6 +93,7 @@ function abortBuild() {
     @update:path="(value: string) => $emit('update:outputArchive', value)"
   />
   <button @click="compressPackage()">Build package</button>
+  <button @click="downloadEspIdf()">Download ESP-IDF package</button>
   <button @click="deployPackage()">Deploy package</button>
   <button @click="runInstallScript()">Run ESP-IDF install script</button>
   <button @click="abortBuild()">Abort build</button>
