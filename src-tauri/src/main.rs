@@ -137,10 +137,23 @@ async fn get_user_home() -> Result<String, ()> {
     }
 }
 
+// Command to get ESP-IDF Tools directory which is specific for each operating system.
+#[tauri::command]
+async fn get_esp_idf_tools_dir() -> Result<String, ()> {
+    #[cfg(unix)]
+    match dirs::home_dir() {
+        Some(path) => Ok(format!("{}/{}", path.to_str().unwrap(), ".espressif")),
+        None => Err(())
+    }
+
+    #[cfg(windows)]
+    Ok("C:\\Espressif");
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

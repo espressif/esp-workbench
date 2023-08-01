@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
+import { join } from "@tauri-apps/api/path";
 import PackagerOptions from "./components/PackagerOptions.vue";
 
 const userHome = ref("");
@@ -9,10 +10,10 @@ const espIdfVersion = ref("v5.1");
 const espToolsPath = ref("/Users/georgik/.espressif");
 const outputArchive = ref("/Users/georgik/esp-dev-env.zip");
 
-function updateProperties() {
-  espToolsPath.value = userHome.value + "/.espressif";
-  espIdfPath.value =  espToolsPath.value + "/esp-idf/esp-idf-" + espIdfVersion.value;
-  outputArchive.value = espToolsPath.value + "/dist/" + "esp-idf-" + espIdfVersion.value + ".zip";
+async function updateProperties() {
+  espToolsPath.value = userHome.value;
+  espIdfPath.value = await join(espToolsPath.value, 'esp-idf', 'esp-idf-' + espIdfVersion.value);
+  outputArchive.value = await join(espToolsPath.value, 'dist', 'esp-idf-' + espIdfVersion.value + '.zip');
 }
 
 function updateVersion(version: string) {
@@ -21,7 +22,7 @@ function updateVersion(version: string) {
 }
 
 onMounted(() => {
-  invoke("get_user_home").then((user_home) => {
+  invoke("get_esp_idf_tools_dir").then((user_home) => {
     console.log("User home:" + user_home);
     userHome.value = user_home + "";
     updateProperties();

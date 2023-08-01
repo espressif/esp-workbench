@@ -24,6 +24,9 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "path": {
+        "all": true
       }
     },
     "bundle": {
