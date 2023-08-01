@@ -30,14 +30,26 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
     }
 }
 
+#[cfg(unix)]
+const SHELL_NAME: &str = "bash";
+#[cfg(unix)]
+const INSTALL_SCRIPT_NAME: &str = "install.sh";
+
+#[cfg(windows)]
+const SHELL_NAME: &str = "cmd";
+#[cfg(windows)]
+const INSTALL_SCRIPT_NAME: &str = "install.cmd";
+
+
 pub fn run_install_script(
     window: Window,
     app: tauri::AppHandle,
-    file_path: String) -> Result<String, ()>
+    esp_idf_path: String) -> Result<String, ()>
 {
+    let file_path = Path::new(&esp_idf_path).join(INSTALL_SCRIPT_NAME);
     let child_handle = thread::spawn(move || {
         // Launch the script
-        let mut child = Command::new("bash")
+        let mut child = Command::new(SHELL_NAME)
             .arg(file_path)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
