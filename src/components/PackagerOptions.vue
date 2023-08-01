@@ -47,9 +47,7 @@ function deployPackage() {
 }
 
 function runInstallScript() {
-  let shellScriptPath = props.espIdfPath + "/install.sh";
-
-  invoke("run_esp_idf_install_script", {window: appWindow, targetPath: shellScriptPath})
+  invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath})
     .then((message) => {
       console.log(message);
     })
@@ -83,9 +81,7 @@ async function installEspIdf() {
     let zipArchive = props.outputArchive;
     await invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf});
 
-    // Await the completion of the script execution
-    let shellScriptPath = props.espIdfPath + "/install.sh";
-    await invoke("run_esp_idf_install_script", {window: appWindow, targetPath: shellScriptPath});
+    await invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath});
   } catch (error) {
     console.error(error);
   }
