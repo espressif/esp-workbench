@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 
 const props = defineProps({
   selectedVersion: String,
@@ -28,7 +27,7 @@ let versions = [
   <div>
     <label for="version-select">ESP-IDF version:</label>
     <select :value="props.selectedVersion" id="version-select"
-      @change="event => emit('update:selectedVersion', event.target.value)">
+      @change="event => emit('update:selectedVersion', (event.target as HTMLSelectElement).value || '')">
       <option v-for="version in versions" :key="version" :value="version">
         {{ version }}
       </option>

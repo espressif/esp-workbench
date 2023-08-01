@@ -40,18 +40,18 @@ async function openPathSelectorDialog() {
   pathSelectorDialogOpen.value = false;
 }
 
-function validatePath() {
-  if (props.path.value === "") {
-    pathError.value = "Path cannot be empty";
-  } else {
-    pathError.value = "";
-  }
-}
+// function validatePath() {
+//   if (props.path.value === "") {
+//     pathError.value = "Path cannot be empty";
+//   } else {
+//     pathError.value = "";
+//   }
+// }
 
-function pathChanged() {
-//   validatePath();
-  emit('update:path', props.path.value)
-}
+// function pathChanged() {
+// //   validatePath();
+//   emit('update:path', props.path.value)
+// }
 
 // function pathSelectorDialogClosed() {
 //   validatePath();
@@ -74,7 +74,7 @@ function pathChanged() {
       class="path-input"
       :value="props.path"
       placeholder="Enter a path..."
-      @input="value => emit('update:path', value.target.value)"
+      @input="value => emit('update:path', (value.target as HTMLSelectElement).value || '')"
     />
     <button type="button" @click="openPathSelectorDialog">...</button>
   </div>

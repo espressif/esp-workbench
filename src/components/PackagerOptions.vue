@@ -22,53 +22,53 @@ type Payload = {
 
 appWindow.listen('progress', ({payload}) => buildStatus.value = (payload as Payload).pct);
 
-function compressPackage() {
-  let espIdf = props.espIdfPath;
-  let output = props.outputArchive;
+// function compressPackage() {
+//   let espIdf = props.espIdfPath;
+//   let output = props.outputArchive;
 
-  invoke("compress", {window: appWindow, sourcePath: espIdf, targetPath: output})
-    .then((message) => {
-      console.log(message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+//   invoke("compress", {window: appWindow, sourcePath: espIdf, targetPath: output})
+//     .then((message) => {
+//       console.log(message);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//     });
+// }
 
-function deployPackage() {
-  let espIdf = props.espIdfPath;
-  let zipArchive = props.outputArchive;
+// function deployPackage() {
+//   let espIdf = props.espIdfPath;
+//   let zipArchive = props.outputArchive;
 
-  invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf})
-    .then((message) => {
-      console.log(message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+//   invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf})
+//     .then((message) => {
+//       console.log(message);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//     });
+// }
 
-function runInstallScript() {
-  invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath})
-    .then((message) => {
-      console.log(message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+// function runInstallScript() {
+//   invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath})
+//     .then((message) => {
+//       console.log(message);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//     });
+// }
 
-function downloadEspIdf() {
-  let output = props.outputArchive;
-  let version = props.espIdfVersion;
-  invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output})
-    .then((message) => {
-      console.log(message);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-}
+// function downloadEspIdf() {
+//   let output = props.outputArchive;
+//   let version = props.espIdfVersion;
+//   invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output})
+//     .then((message) => {
+//       console.log(message);
+//     })
+//     .catch((error) => {
+//       console.error(error);
+//     });
+// }
 
 async function installEspIdf() {
   try {
