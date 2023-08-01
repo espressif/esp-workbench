@@ -83,7 +83,8 @@ pub async fn download_esp_idf(window: Window,
     app: tauri::AppHandle,
     version: String,
     dest_path: String) -> Result<(), ()> {
-    let url = format!("https://github.com/espressif/esp-idf/releases/download/v{}/esp-idf-v{}.zip", version, version);
+    let url = format!("https://github.com/espressif/esp-idf/releases/download/{}/esp-idf-{}.zip", version, version);
+    println!("Downloading ESP-IDF from {}", url);
     let dest_path = Path::new(&dest_path);
 
     match download_file(window, app, &url, dest_path).await {

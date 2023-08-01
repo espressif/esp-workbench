@@ -4,7 +4,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 import PackagerOptions from "./components/PackagerOptions.vue";
 
 
-const espIdfPath = ref("/Users/georgik/projects/esp-idfxx");
+const espIdfPath = ref("/Users/georgik/projects/esp-idf");
+const espIdfVersion = ref("v5.1");
 const espToolsPath = ref("/Users/georgik/.espressif");
 const outputArchive = ref("/Users/georgik/esp-dev-env.zip");
 
@@ -27,6 +28,7 @@ onMounted(() => {
     <div>Navigate with ease in the world of ESP32</div>
     <PackagerOptions
       v-model:esp-idf-path="espIdfPath"
+      v-model:esp-idf-version="espIdfVersion"
       v-model:esp-tools-path="espToolsPath"
       v-model:output-archive="outputArchive"
     />

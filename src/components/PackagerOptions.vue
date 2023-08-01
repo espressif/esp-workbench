@@ -3,9 +3,11 @@ import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow } from '@tauri-apps/api/window';
 import PathSelector from "./PathSelector.vue";
+import VersionSelector from "./VersionSelector.vue";
 
 const props = defineProps({
   espIdfPath: String,
+  espIdfVersion: String,
   espToolsPath: String,
   outputArchive: String
 });
@@ -58,7 +60,8 @@ function runInstallScript() {
 
 function downloadEspIdf() {
   let output = props.outputArchive;
-  invoke("download_esp_idf", {window: appWindow, version: '4.2', targetPath: output})
+  let version = props.espIdfVersion;
+  invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output})
     .then((message) => {
       console.log(message);
     })
@@ -83,6 +86,10 @@ function abortBuild() {
   <PathSelector title="ESP-IDF path"
     :path="props.espIdfPath"
     @update:path="(value: string) => $emit('update:espIdfPath', value)"
+  />
+  <VersionSelector
+    :selectedVersion="props.espIdfVersion"
+    @update:selectedVersion="(value: string) => $emit('update:espIdfVersion', value)"
   />
   <PathSelector title="ESP Tools path"
     :path="props.espToolsPath"
