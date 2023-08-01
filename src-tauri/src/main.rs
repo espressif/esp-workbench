@@ -109,7 +109,7 @@ async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: St
     //     state.builder = BuilderState::Running;
     // }
 
-    let download_handle = tokio::spawn(esp_idf::download_esp_idf(version, target_path));
+    let download_handle = tokio::spawn(esp_idf::download_esp_idf(window, version, target_path));
 
     match download_handle.await {
         Ok(result) => match result {
