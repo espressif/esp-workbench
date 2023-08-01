@@ -3,18 +3,28 @@ import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import PackagerOptions from "./components/PackagerOptions.vue";
 
-
+const userHome = ref("");
 const espIdfPath = ref("/Users/georgik/projects/esp-idf");
 const espIdfVersion = ref("v5.1");
 const espToolsPath = ref("/Users/georgik/.espressif");
 const outputArchive = ref("/Users/georgik/esp-dev-env.zip");
 
+function updateProperties() {
+  espToolsPath.value = userHome.value + "/.espressif";
+  espIdfPath.value =  espToolsPath.value + "/esp-idf/esp-idf-" + espIdfVersion.value;
+  outputArchive.value = espToolsPath.value + "/dist/" + "esp-idf-" + espIdfVersion.value + ".zip";
+}
+
+function updateVersion(version: string) {
+  espIdfVersion.value = version;
+  updateProperties();
+}
+
 onMounted(() => {
   invoke("get_user_home").then((user_home) => {
     console.log("User home:" + user_home);
-    espIdfPath.value =  user_home + "/projects/esp-idf";
-    espToolsPath.value = user_home + "/.espressif/esp-tools";
-    outputArchive.value = user_home + "/esp-dev-env.zip";
+    userHome.value = user_home + "";
+    updateProperties();
   }).catch((error) => {
     console.error(error);
   });
@@ -31,6 +41,7 @@ onMounted(() => {
       v-model:esp-idf-version="espIdfVersion"
       v-model:esp-tools-path="espToolsPath"
       v-model:output-archive="outputArchive"
+      @update:esp-idf-version="(value: string) => updateVersion(value)"
     />
   </div>
 </template>

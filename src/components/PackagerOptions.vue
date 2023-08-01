@@ -70,6 +70,12 @@ function downloadEspIdf() {
     });
 }
 
+function installEspIdf() {
+  downloadEspIdf();
+  deployPackage();
+  runInstallScript();
+}
+
 function abortBuild() {
   invoke("abort_build")
     .then((message) => {
@@ -83,10 +89,10 @@ function abortBuild() {
 </script>
 
 <template>
-  <PathSelector title="ESP-IDF path"
+  <!-- <PathSelector title="ESP-IDF path"
     :path="props.espIdfPath"
     @update:path="(value: string) => $emit('update:espIdfPath', value)"
-  />
+  /> -->
   <VersionSelector
     :selectedVersion="props.espIdfVersion"
     @update:selectedVersion="(value: string) => $emit('update:espIdfVersion', value)"
@@ -95,14 +101,17 @@ function abortBuild() {
     :path="props.espToolsPath"
     @update:path="(value: string) => $emit('update:espToolsPath', value)"
   />
-  <PathSelector title="Output archive"
+  <div>ESP-IDF Path: {{ props.espIdfPath }}</div>
+  <div>ESP-IDF ZIP: {{ props.outputArchive }}</div>
+  <!-- <PathSelector title="Output archive"
     :path="props.outputArchive"
     @update:path="(value: string) => $emit('update:outputArchive', value)"
-  />
-  <button @click="compressPackage()">Build package</button>
-  <button @click="downloadEspIdf()">Download ESP-IDF package</button>
-  <button @click="deployPackage()">Deploy package</button>
-  <button @click="runInstallScript()">Run ESP-IDF install script</button>
-  <button @click="abortBuild()">Abort build</button>
+  /> -->
+  <!-- <button @click="compressPackage()">Build package</button> -->
+  <button @click="installEspIdf()">Install ESP-IDF</button>
+  <!-- <button @click="downloadEspIdf()">Download ESP-IDF package</button> -->
+  <!-- <button @click="deployPackage()">Deploy package</button> -->
+  <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
+  <button @click="abortBuild()">Cancel</button>
   <div>Build status: {{ buildStatus }}</div>
 </template>
