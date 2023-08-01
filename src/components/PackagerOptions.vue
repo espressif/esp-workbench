@@ -131,6 +131,12 @@ function abortBuild() {
       :path="props.outputArchive"
       @update:path="(value: string) => $emit('update:outputArchive', value)"
     /> -->
+
+    <div class="animation-container">
+      <img src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
+      <div v-if="isInstalling" class="led"></div>
+    </div>
+
     <div class="button-container">
       <!-- <button @click="compressPackage()">Build package</button> -->
       <button v-if="!isInstalling" @click="installEspIdf()">Install ESP-IDF</button>
@@ -157,5 +163,34 @@ function abortBuild() {
   padding-left: 30%;
   text-align: left;
 }
+
+.animation-container {
+  position: relative;
+  padding-top: 1em;
+}
+
+.led {
+  position: absolute;
+  top: 135px;
+  left: 38px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: red;
+  animation: colorchange 10s infinite;
+  box-shadow: 0 0 5px 5px red; /* Initial glow color */
+}
+
+@keyframes colorchange {
+  0% { background: red; box-shadow: 0 0 5px 5px red; }
+  14% { background: orange; box-shadow: 0 0 5px 5px orange; }
+  28% { background: yellow; box-shadow: 0 0 5px 5px yellow; }
+  42% { background: lime; box-shadow: 0 0 5px 5px lime; }
+  57% { background: aqua; box-shadow: 0 0 5px 5px aqua; }
+  71% { background: blue; box-shadow: 0 0 5px 5px blue; }
+  85% { background: purple; box-shadow: 0 0 5px 5px purple; }
+  100% { background: red; box-shadow: 0 0 5px 5px red; }
+}
+
 
 </style>
