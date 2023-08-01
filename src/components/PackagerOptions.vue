@@ -13,6 +13,8 @@ const props = defineProps({
 });
 
 const buildStatus = ref("");
+let isInstalling = ref(false);
+let isAborted = ref(false);
 
 type Payload = {
   pct: string,
@@ -73,18 +75,25 @@ async function installEspIdf() {
     let output = props.outputArchive;
     let version = props.espIdfVersion;
 
+    isInstalling.value = true;
     // Await the completion of the download
     await invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output});
 
     // Await the completion of the decompression
     let espIdf = props.espIdfPath;
     let zipArchive = props.outputArchive;
-    await invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf});
+    if (!isAborted.value) {
+       await invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf});
+    }
 
-    await invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath});
+    if (!isAborted.value) {
+      await invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath});
+    }
   } catch (error) {
     console.error(error);
   }
+  isInstalling.value = false;
+  isAborted.value = false;
 }
 
 
@@ -96,6 +105,8 @@ function abortBuild() {
     .catch((error) => {
       console.error(error);
     });
+  isInstalling.value = false;
+  isAborted.value = true;
 }
 
 </script>
@@ -122,11 +133,11 @@ function abortBuild() {
     /> -->
     <div class="button-container">
       <!-- <button @click="compressPackage()">Build package</button> -->
-      <button @click="installEspIdf()">Install ESP-IDF</button>
+      <button v-if="!isInstalling" @click="installEspIdf()">Install ESP-IDF</button>
       <!-- <button @click="downloadEspIdf()">Download ESP-IDF package</button> -->
       <!-- <button @click="deployPackage()">Deploy package</button> -->
       <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
-      <button @click="abortBuild()">Cancel</button>
+      <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
     </div>
   </div>
   <div>{{ buildStatus }}</div>
