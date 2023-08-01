@@ -15,12 +15,12 @@ let versions = [
   'v4.4.5',
   'v4.3.5',
   'v4.2.5',
-  'release/v5.1',
-  'release/v5.0',
-  'release/v4.4',
-  'release/v4.3',
-  'release/v4.2',
-  'master'
+//   'release/v5.1',
+//   'release/v5.0',
+//   'release/v4.4',
+//   'release/v4.3',
+//   'release/v4.2',
+//   'master'
 ];
 </script>
 
