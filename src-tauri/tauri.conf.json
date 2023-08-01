@@ -7,7 +7,7 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "esp-env-packager",
+    "productName": "esp-helm",
     "version": "0.0.1"
   },
   "tauri": {
@@ -24,6 +24,9 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "path": {
+        "all": true
       }
     },
     "bundle": {
@@ -45,9 +48,9 @@
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "esp-env-packager",
-        "width": 1600,
-        "height": 1000
+        "title": "esp-helm",
+        "width": 900,
+        "height": 650
       }
     ]
   }

@@ -8,6 +8,8 @@ use dirs;
 mod app_state;
 use app_state::{AppState, BuilderState};
 
+mod download;
+
 mod esp_idf;
 use esp_idf::{run_install_script};
 
@@ -99,6 +101,33 @@ async fn run_esp_idf_install_script(window: Window, app: tauri::AppHandle, state
 }
 
 
+// Command to download ESP-IDF to ZIP file
+#[tauri::command]
+async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, version: String, target_path:String) -> Result<String, ()> {
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Running;
+    }
+
+    let download_handle = tokio::spawn(esp_idf::download_esp_idf(window, app, version, target_path));
+
+    let result = download_handle.await;
+
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Idle;
+    }
+
+    match result {
+        Ok(result) => match result {
+            Ok(_) => Ok("Download finished successfully".to_string()),
+            Err(_) => Ok("Download failed".to_string()),
+        },
+        Err(err) => Ok("Download task panicked".to_string().to_string()),
+    }
+
+}
+
 // Comand to get the current user home
 #[tauri::command]
 async fn get_user_home() -> Result<String, ()> {
@@ -108,10 +137,23 @@ async fn get_user_home() -> Result<String, ()> {
     }
 }
 
+// Command to get ESP-IDF Tools directory which is specific for each operating system.
+#[tauri::command]
+async fn get_esp_idf_tools_dir() -> Result<String, ()> {
+    #[cfg(unix)]
+    match dirs::home_dir() {
+        Some(path) => Ok(format!("{}/{}", path.to_str().unwrap(), ".espressif")),
+        None => Err(())
+    }
+
+    #[cfg(windows)]
+    Ok("C:\\Espressif".to_string())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, get_user_home, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
