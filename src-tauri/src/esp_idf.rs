@@ -80,12 +80,13 @@ pub fn run_install_script(
 }
 
 pub async fn download_esp_idf(window: Window,
+    app: tauri::AppHandle,
     version: String,
     dest_path: String) -> Result<(), ()> {
     let url = format!("https://github.com/espressif/esp-idf/releases/download/v{}/esp-idf-v{}.zip", version, version);
     let dest_path = Path::new(&dest_path);
 
-    match download_file(window, &url, dest_path).await {
+    match download_file(window, app, &url, dest_path).await {
         Ok(_) => {
             println!("ESP-IDF downloaded successfully");
             Ok(())

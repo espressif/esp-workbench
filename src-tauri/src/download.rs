@@ -4,7 +4,10 @@ use futures::StreamExt;
 use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt; // Add this line
 
-use tauri::{Window};
+use tauri::{Window, Manager};
+
+use std::sync::{Mutex};
+use crate::app_state::{AppState, BuilderState};
 
 const PROGRESS_EVENT: &str = "progress";
 
@@ -13,7 +16,16 @@ struct Payload {
     pct: String,
 }
 
-pub async fn download_file(window: Window, url: &str, dest_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn is_abort_state(app: tauri::AppHandle) -> bool {
+    let state_mutex = app.state::<Mutex<AppState>>();
+    let mut state = state_mutex.lock().unwrap();
+    match state.builder {
+        BuilderState::Abort => true,
+        _ => false
+    }
+}
+
+pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, dest_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     let total_size = {
         let resp = reqwest::get(url).await?;
         resp.content_length().ok_or("unable to get content length")?
@@ -38,7 +50,13 @@ pub async fn download_file(window: Window, url: &str, dest_path: &Path) -> Resul
             pct: format!("Download progress: {:.2}%", percentage).to_string(),
         };
         window.emit(PROGRESS_EVENT, payload).unwrap();
-        
+        if is_abort_state(app.clone()) {
+            let payload = Payload {
+                pct: format!("Download aborted at: {:.2}%", percentage).to_string(),
+            };
+            window.emit(PROGRESS_EVENT, payload).unwrap();
+            break;
+        }
     }
 
     Ok(())

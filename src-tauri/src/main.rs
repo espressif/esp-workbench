@@ -104,27 +104,27 @@ async fn run_esp_idf_install_script(window: Window, app: tauri::AppHandle, state
 // Command to download ESP-IDF to ZIP file
 #[tauri::command]
 async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, version: String, target_path:String) -> Result<String, ()> {
-    // {
-    //     let mut state = state_mutex.lock().unwrap();
-    //     state.builder = BuilderState::Running;
-    // }
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Running;
+    }
 
-    let download_handle = tokio::spawn(esp_idf::download_esp_idf(window, version, target_path));
+    let download_handle = tokio::spawn(esp_idf::download_esp_idf(window, app, version, target_path));
 
-    match download_handle.await {
+    let result = download_handle.await;
+
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Idle;
+    }
+
+    match result {
         Ok(result) => match result {
             Ok(_) => Ok("Download finished successfully".to_string()),
             Err(_) => Ok("Download failed".to_string()),
         },
         Err(err) => Ok("Download task panicked".to_string().to_string()),
     }
-    
-
-    // {
-    //     let mut state = state_mutex.lock().unwrap();
-    //     state.builder = BuilderState::Idle;
-    // }
-
 
 }
 
