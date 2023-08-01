@@ -147,7 +147,7 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
     }
 
     #[cfg(windows)]
-    Ok("C:\\Espressif");
+    Ok("C:\\Espressif".to_string())
 }
 
 fn main() {
