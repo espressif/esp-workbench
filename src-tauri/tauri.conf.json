@@ -49,8 +49,8 @@
         "fullscreen": false,
         "resizable": true,
         "title": "esp-helm",
-        "width": 900,
-        "height": 650
+        "width": 1000,
+        "height": 700
       }
     ]
   }
