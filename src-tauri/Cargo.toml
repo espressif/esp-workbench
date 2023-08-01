@@ -1,5 +1,5 @@
 [package]
-name = "esp-env-packager"
+name = "esp-helm"
 version = "0.0.0"
 description = "A Tauri App"
 authors = ["you"]
