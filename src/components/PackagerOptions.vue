@@ -132,10 +132,21 @@ function abortBuild() {
       @update:path="(value: string) => $emit('update:outputArchive', value)"
     /> -->
 
-    <div class="animation-container">
-      <img src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
-      <div v-if="isInstalling" class="led"></div>
-    </div>
+    <div class="progress-container">
+  <div class="animation-container">
+    <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
+    <div v-if="isInstalling" class="led"></div>
+  </div>
+  <div class="build-status">{{ buildStatus }}</div>
+</div>
+
+    <!-- <div class="progress-container">
+      <div class="animation-container">
+        <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
+        <div v-if="isInstalling" class="led"></div>
+      </div>
+      <div class="build-status">{{ buildStatus }}</div>
+    </div> -->
 
     <div class="button-container">
       <!-- <button @click="compressPackage()">Build package</button> -->
@@ -146,7 +157,7 @@ function abortBuild() {
       <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
     </div>
   </div>
-  <div>{{ buildStatus }}</div>
+
 </template>
 
 
@@ -159,14 +170,18 @@ function abortBuild() {
 }
 
 .packager-container {
-  padding-top: 3em;
-  padding-left: 30%;
+  padding-top: 2em;
+  padding-left: 10%;
   text-align: left;
 }
 
 .animation-container {
   position: relative;
   padding-top: 1em;
+}
+
+.board-image {
+  transform: scale(0.75);
 }
 
 .led {
@@ -192,5 +207,30 @@ function abortBuild() {
   100% { background: red; box-shadow: 0 0 5px 5px red; }
 }
 
+.progress-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: start; /* adjust as per requirement */
+  padding-right: 5em;
+}
+
+.animation-container {
+  flex-basis: 5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.build-status {
+  flex-basis: 75%;
+  background-color: #ccc;
+  padding: 1em;
+  margin-top: 2.5em;
+  overflow: hidden;
+  height: 25vh;
+  white-space: pre-line;
+}
 
 </style>
