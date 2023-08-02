@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { join } from "@tauri-apps/api/path";
+import { getVersion } from '@tauri-apps/api/app';
 import PackagerOptions from "./components/PackagerOptions.vue";
 
+const appVersion = ref('');
 const userHome = ref("");
 const espIdfPath = ref("/Users/georgik/projects/esp-idf");
 const espIdfVersion = ref("v5.1");
@@ -21,8 +23,13 @@ function updateVersion(version: string) {
   updateProperties(espToolsPath.value);
 }
 
+async function fetchVersion() {
+  appVersion.value = await getVersion();
+}
+
 onMounted(() => {
   invoke("get_esp_idf_tools_dir").then((user_home) => {
+    fetchVersion();
     console.log("User home:" + user_home);
     userHome.value = user_home + "";
     updateProperties(userHome.value);
@@ -45,15 +52,15 @@ onMounted(() => {
       v-model:output-archive="outputArchive"
       @update:esp-idf-version="(value: string) => updateVersion(value)"
     />
+    <div class="version">Version: {{ appVersion }}</div>
   </div>
 </template>
 
 <style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
+.version {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: xx-small;
 }
 </style>
