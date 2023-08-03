@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { join } from "@tauri-apps/api/path";
 import { getVersion } from '@tauri-apps/api/app';
 import PackagerOptions from "./components/PackagerOptions.vue";
+import Dashboard from "./components/Dashboard.vue";
 
 const appVersion = ref('');
 const userHome = ref("");
@@ -42,8 +43,7 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <h1>ESP Helm</h1>
-    <div>Navigate with ease in the world of ESP32</div>
+    <Dashboard />
     <PackagerOptions
       v-model:esp-idf-path="espIdfPath"
       v-model:esp-idf-version="espIdfVersion"
