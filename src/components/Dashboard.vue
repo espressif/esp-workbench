@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from "vue";
+import { invoke } from "@tauri-apps/api/tauri";
+import { join } from "@tauri-apps/api/path";
+
 import EspIdfList from './EspIdfList.vue';
+import PackagerOptions from "./PackagerOptions.vue";
+
 // import RustComponentStatus from './RustComponentStatus.vue';
 // import SystemToolsStatus from './SystemToolsStatus.vue';
 // import DiskSpaceStatus from './DiskSpaceStatus.vue';
@@ -16,11 +21,23 @@ let versions = ref([
 
 <template>
   <div>
-    <h1>ESP Helm</h1>
-    <div>Navigate with ease in the world of ESP32</div>
     <esp-idf-list :versions="versions" />
-    <!-- <rust-component-status />
-    <system-tools-status />
-    <disk-space-status /> -->
+    <router-link  class="add-button" to="/esp-idf">+ Add ESP-IDF</router-link>
   </div>
 </template>
+
+<style scoped>
+.add-button {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #007bff;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+}
+</style>

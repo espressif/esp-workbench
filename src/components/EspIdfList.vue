@@ -17,6 +17,5 @@ const props = defineProps({
     <div v-else>
       No ESP-IDF installed
     </div>
-    <button @click="$emit('addNewVersion')">+ Add ESP-IDF</button>
   </div>
 </template>
