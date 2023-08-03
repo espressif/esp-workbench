@@ -34,9 +34,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <esp-idf-list :versions="versions" />
-    <router-link  class="add-button" to="/esp-idf">+ Install new ESP-IDF version</router-link>
+  <div class="grid-container">
+    <div class="tile">
+      <esp-idf-list class="esp-idf-list" :versions="versions" />
+      <router-link  class="add-button" to="/esp-idf">+ Install new ESP-IDF version</router-link>
+    </div>
+    <div class="tile">
+      Second tile with disk information
+    </div>
+    <!-- Add more tiles here as needed -->
   </div>
 </template>
 
@@ -53,5 +59,23 @@ onMounted(() => {
 
 .add-button:hover {
   background-color: #0056b3;
+}
+
+.esp-idf-list {
+  padding-bottom: 1em;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.tile {
+  border: 1px solid #ccc;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #f8f8f8;
 }
 </style>
