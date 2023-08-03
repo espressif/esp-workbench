@@ -20,6 +20,8 @@ use serde::Serialize;
 use thiserror;
 use tauri::{State, Window};
 
+use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt, DiskExt};
+
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -172,10 +174,28 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
     Ok("C:\\Espressif".to_string())
 }
 
+#[tauri::command]
+async fn get_disk_usage() -> Result<Vec<String>, ()> {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+
+    let disk_info: Vec<String> = sys
+        .disks()
+        .iter()
+        .map(|disk| {
+            // convert from bytes to GB
+            let capacity_gb = disk.available_space() / 1_000_000_000;
+            format!("{} GB", capacity_gb)
+        })
+        .collect();
+
+    Ok(disk_info)
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_disk_usage, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

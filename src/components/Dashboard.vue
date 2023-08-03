@@ -2,11 +2,8 @@
 import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 
+import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
-
-// import RustComponentStatus from './RustComponentStatus.vue';
-// import SystemToolsStatus from './SystemToolsStatus.vue';
-// import DiskSpaceStatus from './DiskSpaceStatus.vue';
 
 let versions = ref([]);
 
@@ -40,7 +37,7 @@ onMounted(() => {
       <router-link  class="add-button" to="/esp-idf">+ Install new ESP-IDF version</router-link>
     </div>
     <div class="tile">
-      Second tile with disk information
+      <disk-usage />
     </div>
     <!-- Add more tiles here as needed -->
   </div>
