@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "esp-helm",
-    "version": "0.0.5"
+    "version": "0.0.6"
   },
   "tauri": {
     "allowlist": {
@@ -47,6 +47,9 @@
     "updater": {
       "active": true,
       "dialog": true,
+      "endpoints": [
+        "https://github.com/georgik/esp-helm/releases/latest/download/latest.json"
+      ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlCQkIzRkYyMjFBRTJCMzUKUldRMUs2NGg4ais3bTNteEJYdVpLZmIwTjBWWkhNLzl1NUdpM2hha2pKYWZuT2FDbnZldGhWa2cK",
       "windows": {
         "installMode": "passive",
