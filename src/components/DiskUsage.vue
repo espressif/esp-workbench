@@ -3,7 +3,7 @@
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 
-let diskSpace = ref([]);
+let diskSpace = ref<string[]>([]);
 
 onMounted(() => {
   invoke('get_disk_usage')

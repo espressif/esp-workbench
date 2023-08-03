@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { getVersion } from '@tauri-apps/api/app';
-import Dashboard from "./components/Dashboard.vue";
 import HomeIcon from "./components/HomeIcon.vue";
 const appVersion = ref('');
 

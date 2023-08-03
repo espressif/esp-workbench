@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
 
-let versions = ref([]);
+let versions = ref<string[]>([]);
 
 function extractVersion(path: string): string {
   const parts = path.split('/');
