@@ -128,6 +128,28 @@ async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: St
 
 }
 
+// Command to get list of ESP-IDF stored in users home directory as array of strings
+#[tauri::command]
+async fn get_esp_idf_list() -> Result<Vec<String>, ()> {
+    let mut esp_idf_list: Vec<String> = Vec::new();
+
+    match dirs::home_dir() {
+        Some(path) => {
+            let path = format!("{}/{}", path.to_str().unwrap(), ".espressif/esp-idf");
+            let paths = std::fs::read_dir(path).unwrap();
+
+            for path in paths {
+                let path = path.unwrap().path();
+                let path = path.to_str().unwrap().to_string();
+                esp_idf_list.push(path);
+            }
+        },
+        None => return Err(())
+    }
+
+    Ok(esp_idf_list)
+}
+
 // Comand to get the current user home
 #[tauri::command]
 async fn get_user_home() -> Result<String, ()> {
@@ -153,7 +175,7 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
