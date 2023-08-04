@@ -5,25 +5,34 @@ import { invoke } from '@tauri-apps/api/tauri';
 const ESP32_PIDS = ['0x1001', '0x6001', '0x6010', '0x7523', '0xEA60'];
 const ESP32_VIDS = ['0x0403', '0x10C4', '0x10C5', '0x1A86', '0x303A'];
 
-let ports = ref([]);
+
 let showAll = ref(false);
 
 function formatPidVid(value: number): string {
   return "0x" + value.toString(16).toUpperCase().padStart(4, '0');
 }
 
+interface ConnectedPort {
+  port_name: string;
+  product: string;
+  pid: number;
+  vid: number;
+}
+
+let ports = ref<ConnectedPort[]>([]);
+
 const fetchPorts = () => {
-  invoke('get_connected_serial_devices')
-    .then((availablePorts: any[]) => {
-      availablePorts.forEach(port => {
-        port.pid = formatPidVid(port.pid);
-        port.vid = formatPidVid(port.vid);
-      });
+  invoke<ConnectedPort[]>('get_connected_serial_devices')
+    .then((availablePorts) => {
+      // availablePorts.forEach(port => {
+      //   port.pid = formatPidVid(port.pid);
+      //   port.vid = formatPidVid(port.vid);
+      // });
       if (showAll.value) {
         ports.value = availablePorts;
       } else {
         ports.value = availablePorts.filter(port =>
-          ESP32_PIDS.includes(port.pid) && ESP32_VIDS.includes(port.vid)
+          ESP32_PIDS.includes(formatPidVid(port.pid)) && ESP32_VIDS.includes(formatPidVid(port.vid))
         );
       }
     })
@@ -41,12 +50,12 @@ onMounted(fetchPorts);
     <div v-if="ports.length > 0">
       <ul class="no-bullets">
         <li v-for="(port, index) in ports" :key="index"
-            :class="{'gray-text': !ESP32_VIDS.includes(port.vid)}">
+            :class="{'gray-text': !ESP32_VIDS.includes(formatPidVid(port.vid))}">
           <span class="tooltip">
             {{ port.port_name }}
             <span class="tooltiptext">
               {{  port.product }}
-              PID: {{ port.pid }} VID: {{ port.vid }}
+              PID: {{ formatPidVid(port.pid) }} VID: {{ formatPidVid(port.vid) }}
             </span>
           </span>
         </li>
