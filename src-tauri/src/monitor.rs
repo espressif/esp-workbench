@@ -17,7 +17,7 @@ where
 
 
 fn handle_serial(buff: &[u8], window: &Window) {
-  println!("Serial: {:?}", buff);
+  // println!("Serial: {:?}", buff);
   // Normalize the buffer content
   let text: Vec<u8> = normalized(buff.iter().copied()).collect();
   let text = String::from_utf8_lossy(&text).to_string();

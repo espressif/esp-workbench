@@ -25,6 +25,7 @@ zip = "0.6.6"
 walkdir = "2.3.3"
 sysinfo = "0.29.7"
 serialport = { version = "4.2.1" }
+espflash = "2.0.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

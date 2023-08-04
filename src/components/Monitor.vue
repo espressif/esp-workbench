@@ -37,6 +37,22 @@ const stopMonitoring = () => {
   <div>
     <h2>Monitoring Port {{ port }}</h2>
     <button @click="stopMonitoring">Stop</button>
-    <pre>{{ logData }}</pre>
+    <pre class="console">{{ logData }}</pre>
   </div>
 </template>
+
+<style scoped>
+.console {
+  text-align: left;
+  background-color: black;
+  color: limegreen;
+  padding: 15px;
+  max-height: 350px;
+  overflow-y: scroll;
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+</style>
