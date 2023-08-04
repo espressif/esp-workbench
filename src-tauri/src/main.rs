@@ -193,6 +193,7 @@ async fn get_disk_usage() -> Result<Vec<String>, ()> {
 #[derive(serde::Serialize)]
 struct ConnectedPort {
   port_name: String,
+  product: String,
   pid: u16,
   vid: u16,
 }
@@ -208,6 +209,7 @@ async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
           // 1027 = 0x0403 (FTDI)
           esp32s.push(ConnectedPort {
             port_name: p.port_name,
+            product: info.product.unwrap_or("".to_string()),
             pid: info.pid,
             vid: info.vid,
           });

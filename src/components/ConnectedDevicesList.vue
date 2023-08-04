@@ -2,18 +2,22 @@
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 
-const ESP32_PIDS = ['6001', '7523', 'EA60'];
-const ESP32_VIDS = ['0403', '10C4', '10C5', '1A86'];
+const ESP32_PIDS = ['0x1001', '0x6001', '0x6010', '0x7523', '0xEA60'];
+const ESP32_VIDS = ['0x0403', '0x10C4', '0x10C5', '0x1A86', '0x303A'];
 
 let ports = ref([]);
 let showAll = ref(false);
+
+function formatPidVid(value: number): string {
+  return "0x" + value.toString(16).toUpperCase().padStart(4, '0');
+}
 
 const fetchPorts = () => {
   invoke('get_connected_serial_devices')
     .then((availablePorts: any[]) => {
       availablePorts.forEach(port => {
-        port.pid = Number(port.pid).toString(16).toUpperCase();
-        port.vid = Number(port.vid).toString(16).toUpperCase();
+        port.pid = formatPidVid(port.pid);
+        port.vid = formatPidVid(port.vid);
       });
       if (showAll.value) {
         ports.value = availablePorts;
@@ -37,12 +41,12 @@ onMounted(fetchPorts);
     <div v-if="ports.length > 0">
       <ul class="no-bullets">
         <li v-for="(port, index) in ports" :key="index"
-            :class="{'gray-text': !ESP32_PIDS.includes(port.pid) || !ESP32_VIDS.includes(port.vid)}"
-            v-tooltip="{ content: `PID: ${port.pid}, VID: ${port.vid}` }">
+            :class="{'gray-text': !ESP32_VIDS.includes(port.vid)}">
           <span class="tooltip">
             {{ port.port_name }}
             <span class="tooltiptext">
-              PID: 0x{{ port.pid }}, VID: 0x{{ port.vid }}
+              {{  port.product }}
+              PID: {{ port.pid }} VID: {{ port.vid }}
             </span>
           </span>
         </li>
