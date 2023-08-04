@@ -1,58 +1,34 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { invoke } from "@tauri-apps/api/tauri";
-import { join } from "@tauri-apps/api/path";
 import { getVersion } from '@tauri-apps/api/app';
-import PackagerOptions from "./components/PackagerOptions.vue";
-
+import HomeIcon from "./components/HomeIcon.vue";
 const appVersion = ref('');
-const userHome = ref("");
-const espIdfPath = ref("/Users/georgik/projects/esp-idf");
-const espIdfVersion = ref("v5.1");
-const espToolsPath = ref("/Users/georgik/.espressif");
-const outputArchive = ref("/Users/georgik/esp-dev-env.zip");
-
-async function updateProperties(path: string) {
-  espToolsPath.value = path;
-  espIdfPath.value = await join(espToolsPath.value, 'esp-idf', 'esp-idf-' + espIdfVersion.value);
-  outputArchive.value = await join(espToolsPath.value, 'dist', 'esp-idf-' + espIdfVersion.value + '.zip');
-}
-
-function updateVersion(version: string) {
-  espIdfVersion.value = version;
-  updateProperties(espToolsPath.value);
-}
 
 async function fetchVersion() {
   appVersion.value = await getVersion();
 }
 
 onMounted(() => {
-  invoke("get_esp_idf_tools_dir").then((user_home) => {
-    fetchVersion();
-    console.log("User home:" + user_home);
-    userHome.value = user_home + "";
-    updateProperties(userHome.value);
-  }).catch((error) => {
-    console.error(error);
-  });
+  fetchVersion();
 });
+
 
 </script>
 
 <template>
   <div class="container">
-    <h1>ESP Helm</h1>
-    <div>Navigate with ease in the world of ESP32</div>
-    <PackagerOptions
-      v-model:esp-idf-path="espIdfPath"
-      v-model:esp-idf-version="espIdfVersion"
-      v-model:esp-tools-path="espToolsPath"
-      @update:esp-tools-path="(value: string) => updateProperties(value)"
-      v-model:output-archive="outputArchive"
-      @update:esp-idf-version="(value: string) => updateVersion(value)"
-    />
-    <div class="version">Version: {{ appVersion }}</div>
+    <aside class="sidebar">
+      <router-link to="/" class="nav-icon">
+        <HomeIcon />
+      </router-link>
+      <!-- Add more navigation links/icons here if needed -->
+    </aside>
+    <main>
+      <h1>ESP Helm</h1>
+      <div>Navigate with ease in the world of ESP32</div>
+      <router-view />
+      <div class="version">Version: {{ appVersion }}</div>
+    </main>
   </div>
 </template>
 
@@ -62,5 +38,35 @@ onMounted(() => {
   bottom: 10px;
   right: 10px;
   font-size: xx-small;
+}
+
+.container {
+  display: flex;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  flex-direction: column;
+  align-items: center;
+  /* background-color: #555; */
+  /* color: #fff; */
+  width: 60px;
+  padding: 10px 10px;
+}
+
+.nav-icon {
+  margin-bottom: 20px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+}
+
+main {
+  flex: 1;
+  padding-left: 20px;
 }
 </style>
