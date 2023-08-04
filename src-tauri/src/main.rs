@@ -21,6 +21,7 @@ use thiserror;
 use tauri::{State, Window};
 
 use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt, DiskExt};
+use serialport::available_ports;
 
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
@@ -192,10 +193,39 @@ async fn get_disk_usage() -> Result<Vec<String>, ()> {
     Ok(disk_info)
 }
 
+
+#[derive(serde::Serialize)]
+struct ConnectedPort {
+  port_name: String,
+  pid: u16,
+  vid: u16,
+}
+
+#[tauri::command]
+async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
+  let mut esp32s = vec![];
+  if let Ok(ports) = available_ports() {
+    for p in ports {
+      if let serialport::SerialPortType::UsbPort(info) = p.port_type {
+        // if info.manufacturer.is_some() && (info.vid == 4292 || info.vid == 1027) {
+          // 4292 = 0x10C4 (Silabs CP210x)
+          // 1027 = 0x0403 (FTDI)
+          esp32s.push(ConnectedPort {
+            port_name: p.port_name,
+            pid: info.pid,
+            vid: info.vid,
+          });
+        // }
+      }
+    }
+  }
+  esp32s
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_disk_usage, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
