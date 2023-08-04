@@ -13,11 +13,11 @@ const routes: Array<RouteRecordRaw> = [
     name: "ESP-IDF",
     component: () => import("./components/EspIdf.vue"),
   },
-  // {
-  //   path: "/add",
-  //   name: "add",
-  //   component: () => import("./components/AddTutorial.vue"),
-  // },
+  {
+    path: "/monitor/:portName",
+    name: "ESP Monitor",
+    component: () => import("./components/Monitor.vue"),
+  }
 ];
 
 const router = createRouter({
