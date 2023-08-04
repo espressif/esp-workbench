@@ -136,18 +136,14 @@ async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: St
 async fn get_esp_idf_list() -> Result<Vec<String>, ()> {
     let mut esp_idf_list: Vec<String> = Vec::new();
 
-    match dirs::home_dir() {
-        Some(path) => {
-            let path = format!("{}/{}", path.to_str().unwrap(), ".espressif/esp-idf");
-            let paths = std::fs::read_dir(path).unwrap();
+    let tools_dir = get_esp_idf_tools_dir().await.unwrap();
+    let path = format!("{}/{}", tools_dir, "esp-idf");
+    let paths = std::fs::read_dir(path).unwrap();
 
-            for path in paths {
-                let path = path.unwrap().path();
-                let path = path.to_str().unwrap().to_string();
-                esp_idf_list.push(path);
-            }
-        },
-        None => return Err(())
+    for path in paths {
+        let path = path.unwrap().path();
+        let path = path.to_str().unwrap().to_string();
+        esp_idf_list.push(path);
     }
 
     Ok(esp_idf_list)
