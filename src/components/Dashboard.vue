@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
+import ConnectedDevicesList from "./ConnectedDevicesList.vue";
 
 let versions = ref<string[]>([]);
 
@@ -39,7 +40,9 @@ onMounted(() => {
     <div class="tile">
       <disk-usage />
     </div>
-    <!-- Add more tiles here as needed -->
+    <div class="tile">
+      <connected-devices-list />
+    </div>
   </div>
 </template>
 

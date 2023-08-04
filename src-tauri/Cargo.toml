@@ -1,8 +1,8 @@
 [package]
 name = "esp-helm"
 version = "0.0.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Maintain ESP32 Development Environment"
+authors = ["Juraj Michálek <juraj.michalek@espressif.com>"]
 license = ""
 repository = ""
 edition = "2021"
@@ -24,6 +24,7 @@ thiserror = "1.0.44"
 zip = "0.6.6"
 walkdir = "2.3.3"
 sysinfo = "0.29.7"
+serialport = { version = "4.2.1" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
