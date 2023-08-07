@@ -44,6 +44,13 @@ pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
   Err(io::Error::new(io::ErrorKind::NotFound, "Port not found"))
 }
 
+pub fn emit_error(window: &Window, error: &str) {
+  let error_payload = Payload {
+      pct: format!("Error: {}", error),
+  };
+  window.emit("error", error_payload).unwrap();
+}
+
 pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
     // Read the binary file
     let binary_file = PathBuf::from(file_path);
@@ -71,7 +78,11 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
     window.emit("flash-event", payload).unwrap();
 
     let mut progress = FlashProgress { window: window.clone() };
-    flasher.write_bin_to_flash(flash_offset, &data, Some(&mut progress)).unwrap();
+    flasher.write_bin_to_flash(flash_offset, &data, Some(&mut progress)).map_err(|e| {
+      let error = format!("Flash error: {:?}", e);
+      emit_error(&window, &error);
+      error
+    })?;
 
     window.emit("flash-event", Some("Flash Done")).unwrap();
 
