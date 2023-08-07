@@ -76,7 +76,7 @@ const startFlashing = () => {
     </div>
 
     <button @click="startFlashing">Flash</button>
-    <router-link :to="{ name: 'ESP Monitor', params: { portName: port }}">
+    <router-link :to="{ name: 'ESP Monitor', params: { portName: port.value }}">
       <button>Monitor</button>
     </router-link>
     <!-- <pre class="console">
@@ -97,6 +97,8 @@ const startFlashing = () => {
 
 
 .progress {
+  padding-top: 1em;
+  padding-bottom: 1em;
   width: 100%;
   height: 20px;
   background-color: #f3f3f3;

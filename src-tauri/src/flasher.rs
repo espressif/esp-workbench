@@ -79,25 +79,23 @@ pub fn emit_error(window: &Window, error: &str) {
 
 pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
 
-    let file_metadata = std::fs::metadata(&file_path);
-    match file_metadata {
-        Ok(metadata) => {
-            if metadata.len() > 1500000 {
-                emit_error(&window, "File size cannot be greater than 1.5MB. Limitation: https://github.com/esp-rs/espflash/issues/453");
-                return Ok(());
-            }
-        }
-        Err(e) => {
-            emit_error(&window, &format!("Failed to get file metadata: {}", e));
-            return Ok(());
-        }
-    }
+    // let file_metadata = std::fs::metadata(&file_path);
+    // match file_metadata {
+    //     Ok(metadata) => {
+    //         if metadata.len() > 1500000 {
+    //             emit_error(&window, "File size cannot be greater than 1.5MB. Limitation: https://github.com/esp-rs/espflash/issues/453");
+    //             return Ok(());
+    //         }
+    //     }
+    //     Err(e) => {
+    //         emit_error(&window, &format!("Failed to get file metadata: {}", e));
+    //         return Ok(());
+    //     }
+    // }
 
     let binary_file = PathBuf::from(file_path);
 
-
-
-    let data = read(&binary_file).unwrap();
+    let mut data = read(&binary_file).unwrap();
 
     let dtr = Some(1);
     let rts = Some(0);
@@ -122,11 +120,28 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
     window.emit("flash-event", payload).unwrap();
 
     let mut progress = FlashProgress { window: window.clone(), total: 0, current: 0 };
-    flasher.write_bin_to_flash(flash_offset, &data, Some(&mut progress)).map_err(|e| {
-      let error = format!("Flash error: {:?}", e);
-      emit_error(&window, &error);
-      error
-    })?;
+
+    let chunk_size = 1024 * 1024; // 1MB chunk size
+    // let total_size = data.len();
+    let mut offset = flash_offset;
+    // let mut current_offset = 0;
+
+    while !data.is_empty() {
+      let (chunk, rest) = if data.len() > chunk_size {
+          data.split_at(chunk_size)
+      } else {
+          (data.as_ref(), &[][..])
+      };
+
+      flasher.write_bin_to_flash(offset, chunk, Some(&mut progress)).map_err(|e| {
+          let error = format!("Flash error: {:?}", e);
+          emit_error(&window, &error);
+          error
+      })?;
+
+      offset += chunk.len() as u32;
+      data = rest.to_vec();
+    }
 
     window.emit("flash-event", Some("Flash Done")).unwrap();
 
