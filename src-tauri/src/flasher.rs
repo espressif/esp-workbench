@@ -71,7 +71,7 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
     window.emit("flash-event", payload).unwrap();
 
     let mut progress = FlashProgress { window: window.clone() };
-    flasher.write_bin_to_flash(0x10000, &data, Some(&mut progress)).unwrap();
+    flasher.write_bin_to_flash(flash_offset, &data, Some(&mut progress)).unwrap();
 
     window.emit("flash-event", Some("Flash Done")).unwrap();
 
