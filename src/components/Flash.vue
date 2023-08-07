@@ -9,6 +9,7 @@ let file = ref("");
 let product = ref("");
 let pid = ref("");
 let vid = ref("");
+let flashOffset = ref("0");
 
 onMounted(() => {
   port.value = decodeURIComponent(window.location.pathname.split("/")[2]);
@@ -21,7 +22,7 @@ const updateFilePath = (filePath: string) => {
 
 const startFlashing = () => {
   if (file.value) {
-    invoke('start_flash', { port: port.value, filePath: file.value })
+    invoke('start_flash', { port: port.value, filePath: file.value, flashOffset: parseInt(flashOffset.value, 16) })
       .catch((error) => {
         console.error(error);
       });
@@ -47,9 +48,24 @@ const logData = computed(() => rawData.value.split('\n'));
         @update:path="updateFilePath"
       />
     </div>
+    <div>
+      <label for="flash-offset">Flash Offset (in Hex):</label>
+      <input type="text" id="flash-offset" v-model="flashOffset">
+    </div>
     <button @click="startFlashing">Flash</button>
     <pre class="console">
       <span v-for="(line, index) in logData" :key="index">{{ line }}<br /></span>
     </pre>
   </div>
 </template>
+
+
+<style scoped>
+.console {
+  background-color: black;
+  color: limegreen;
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: scroll;
+}
+</style>

@@ -44,7 +44,7 @@ pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
   Err(io::Error::new(io::ErrorKind::NotFound, "Port not found"))
 }
 
-pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String)  -> Result<(), String> {
+pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
     // Read the binary file
     let binary_file = PathBuf::from(file_path);
     let data = read(&binary_file).unwrap();

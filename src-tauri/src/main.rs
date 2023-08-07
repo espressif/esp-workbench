@@ -217,13 +217,13 @@ async fn stop_monitor(state_mutex: State<'_, Mutex<AppState>>) -> Result<String,
 // }
 
 #[tauri::command]
-async fn start_flash(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, port: String, file_path: String) -> Result<String, ()> {
+async fn start_flash(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, port: String, file_path: String, flash_offset: u32) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
     }
 
-    let flasher_handle = tokio::spawn(flasher::flash_file(window, app, port, file_path));
+    let flasher_handle = tokio::spawn(flasher::flash_file(window, app, port, file_path, flash_offset));
 
     let result = flasher_handle.await;
 
