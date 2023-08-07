@@ -10,3 +10,5 @@ Check out releases for binary version.
 - Display available disk space
 - Display list of connected ESP32 devices
 - Auto-update
+- Monitoring
+- Flashing
