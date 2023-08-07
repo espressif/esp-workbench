@@ -13,6 +13,8 @@ mod download;
 mod esp_idf;
 use esp_idf::{run_install_script};
 
+mod monitor;
+
 mod zip_archiver;
 use zip_archiver::{zip_dir, unzip};
 
@@ -171,6 +173,55 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
     Ok("C:\\Espressif".to_string())
 }
 
+use crate::monitor::monitor_port;
+
+#[tauri::command]
+async fn start_monitor(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, port: String) -> Result<String, ()> {
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Running;
+    }
+
+    let monitor_handle = tokio::spawn(monitor_port(window, app, port));
+
+    let result = monitor_handle.await;
+
+    {
+        let mut state = state_mutex.lock().unwrap();
+        state.builder = BuilderState::Idle;
+    }
+
+    match result {
+        Ok(result) => match result {
+            Ok(_) => Ok("Monitoring finished successfully".to_string()),
+            Err(_) => Ok("Monitoring failed".to_string()),
+        },
+        Err(err) => Ok("Monitoring task panicked".to_string().to_string()),
+    }
+}
+
+#[tauri::command]
+async fn stop_monitor(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
+    let mut state = state_mutex.lock().unwrap();
+    state.builder = BuilderState::Abort;
+    Ok("ok".to_string())
+}
+
+// async fn monitor_port(window: Window, app: tauri::AppHandle, port: String) -> Result<(), ()> {
+//   let state_mutex = app.get_state::<Mutex<AppState>>().unwrap();
+//   let state = state_mutex.lock().await;
+
+//   // code to open the port and monitor it, dispatching events to frontend...
+//   // check state.monitor occasionally to see if we need to stop monitoring...
+// }
+
+
+
+
+
+
+
+
 #[tauri::command]
 async fn get_disk_usage() -> Result<Vec<String>, ()> {
     let mut sys = System::new_all();
@@ -223,7 +274,9 @@ async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage, get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script])
+        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage,
+            get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script,
+            start_monitor, stop_monitor])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
