@@ -18,15 +18,15 @@ struct FlashProgress {
 impl ProgressCallbacks for FlashProgress {
 
     fn init(&mut self, addr: u32, total: usize) {
-        todo!()
+        println!("init: addr: {:x}, total: {}", addr, total);
     }
 
     fn update(&mut self, current: usize) {
-        todo!()
+        println!("update: current: {}", current);
     }
 
     fn finish(&mut self) {
-        todo!()
+        println!("finish");
     }
 }
 
@@ -52,8 +52,25 @@ pub fn emit_error(window: &Window, error: &str) {
 }
 
 pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
-    // Read the binary file
+
+    let file_metadata = std::fs::metadata(&file_path);
+    match file_metadata {
+        Ok(metadata) => {
+            if metadata.len() > 1500000 {
+                emit_error(&window, "File size cannot be greater than 1.5MB. Limitation: https://github.com/esp-rs/espflash/issues/453");
+                return Ok(());
+            }
+        }
+        Err(e) => {
+            emit_error(&window, &format!("Failed to get file metadata: {}", e));
+            return Ok(());
+        }
+    }
+
     let binary_file = PathBuf::from(file_path);
+
+
+
     let data = read(&binary_file).unwrap();
 
     let dtr = Some(1);
@@ -61,15 +78,16 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
 
     // let port_info = get_serial_port_info(port.as_str()).unwrap();
 
+    println!("port: {}", port);
     let serial_port_info = get_serial_port_info(port.as_str()).unwrap();
     let port_info = match &serial_port_info.port_type {
         serialport::SerialPortType::UsbPort(info) => Some(info.clone()),
         _ => return Err(("Port is not a USB port".to_string() ))
     };
     let mut serial = Interface::new(&serial_port_info, dtr, rts).unwrap();
+
+    println!("Connecting to port...");
     let mut flasher = Flasher::connect(serial, port_info.unwrap(), None, false).unwrap();
-
-
 
     // Emit the line to the frontend
     let payload = Payload {
