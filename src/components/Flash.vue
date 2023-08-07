@@ -1,40 +1,36 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
-import { appWindow } from '@tauri-apps/api/window';
+import PathSelector from './PathSelector.vue';
 
 let rawData = ref("");
 let port = ref("");
-let file = ref(null);
+let file = ref("");
 let product = ref("");
 let pid = ref("");
 let vid = ref("");
 
 onMounted(() => {
-  port.value = decodeURIComponent(window.location.pathname.split("/")[2]); // assuming "/flash/:port" route
+  port.value = decodeURIComponent(window.location.pathname.split("/")[2]);
   // TODO: Fetch port info and fill product, pid, vid refs
 });
 
-const handleFileUpload = (event: { target: { files: null[]; }; }) => {
-  file.value = event.target.files[0];
+const updateFilePath = (filePath: string) => {
+  file.value = filePath;
 };
 
 const startFlashing = () => {
-  // TODO: Start flashing process and listen to 'flash-event'
+  if (file.value) {
+    invoke('start_flash', { port: port.value, filePath: file.value })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+  // TODO: Start listening to 'flash-event'
 };
 
 const logData = computed(() => rawData.value.split('\n'));
 </script>
-
-<style scoped>
-.console {
-  background-color: black;
-  color: limegreen;
-  padding: 15px;
-  max-height: 500px;
-  overflow-y: scroll;
-}
-</style>
 
 <template>
   <div>
@@ -45,8 +41,11 @@ const logData = computed(() => rawData.value.split('\n'));
       <label>VID: {{ vid }}</label><br>
     </div>
     <div>
-      <label for="bin-file">Select BIN file:</label>
-      <input type="file" id="bin-file" accept=".bin" v-on:change="handleFileUpload">
+      <PathSelector
+        title="Select BIN file:"
+        :path="file"
+        @update:path="updateFilePath"
+      />
     </div>
     <button @click="startFlashing">Flash</button>
     <pre class="console">

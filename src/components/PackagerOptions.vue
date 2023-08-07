@@ -123,6 +123,7 @@ function abortBuild() {
     />
     <PathSelector title="ESP Tools path"
       :path="props.espToolsPath"
+      :allowDirectories="true"
       @update:path="(value: string) => $emit('update:espToolsPath', value)"
     />
     <div>ESP-IDF Path: {{ props.espIdfPath }}</div>
