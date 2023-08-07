@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
+import { useRouter } from 'vue-router';
 import PathSelector from './PathSelector.vue';
 
-let rawData = ref("");
 let port = ref("");
 let file = ref("");
 // let product = ref("");
@@ -27,11 +27,16 @@ onMounted(() => {
     total.value = payload.total;
   });
 
-  appWindow.listen('flash-finish', (event) => {
-
+  appWindow.listen('flash-finish', (_) => {
     progress.value = 100;
   });
 });
+
+
+const router = useRouter();
+const navigateToMonitor = () => {
+  router.push({ name: 'ESP Monitor', params: { portName: port.value } });
+};
 
 const updateFilePath = (filePath: string) => {
   file.value = filePath;
@@ -76,9 +81,7 @@ const startFlashing = () => {
     </div>
 
     <button @click="startFlashing">Flash</button>
-    <router-link :to="{ name: 'ESP Monitor', params: { portName: port.value }}">
-      <button>Monitor</button>
-    </router-link>
+    <button @click="navigateToMonitor">Monitor</button>
     <!-- <pre class="console">
       <span v-for="(line, index) in logData" :key="index">{{ line }}<br /></span>
     </pre> -->
