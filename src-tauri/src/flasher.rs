@@ -11,22 +11,48 @@ struct Payload {
     pct: String,
 }
 
+#[derive(Clone, serde::Serialize)]
+struct FlashProgressEvent {
+    count: usize,
+    total: usize,
+}
+
 struct FlashProgress {
     window: Window,
+    current: usize,
+    total: usize,
 }
 
 impl ProgressCallbacks for FlashProgress {
 
     fn init(&mut self, addr: u32, total: usize) {
         println!("init: addr: {:x}, total: {}", addr, total);
+        self.current = 0;
+        self.total = total;
+        let flash_payload = FlashProgressEvent {
+          count: self.current,
+          total
+        };
+        self.window.emit("flash-update", flash_payload).unwrap();
     }
 
     fn update(&mut self, current: usize) {
         println!("update: current: {}", current);
+        self.current = current;
+        let flash_payload = FlashProgressEvent {
+          count: current,
+          total: self.total
+        };
+        self.window.emit("flash-update", flash_payload).unwrap();
     }
 
     fn finish(&mut self) {
         println!("finish");
+        let flash_payload = FlashProgressEvent {
+          count: self.total,
+          total: self.total
+        };
+        self.window.emit("flash-finish", flash_payload).unwrap();
     }
 }
 
@@ -95,7 +121,7 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
     };
     window.emit("flash-event", payload).unwrap();
 
-    let mut progress = FlashProgress { window: window.clone() };
+    let mut progress = FlashProgress { window: window.clone(), total: 0, current: 0 };
     flasher.write_bin_to_flash(flash_offset, &data, Some(&mut progress)).map_err(|e| {
       let error = format!("Flash error: {:?}", e);
       emit_error(&window, &error);
