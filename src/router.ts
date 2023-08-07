@@ -17,7 +17,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/monitor/:portName",
     name: "ESP Monitor",
     component: () => import("./components/Monitor.vue"),
-  }
+  },
+  {
+    path: "/flash/:portName",
+    name: "flash",
+    component: () => import("./components/Flash.vue"),
+  },
 ];
 
 const router = createRouter({

@@ -58,10 +58,14 @@ onMounted(fetchPorts);
               PID: {{ formatPidVid(port.pid) }} VID: {{ formatPidVid(port.vid) }}
             </span>
           </span>
-          <router-link :to="{ name: 'ESP Monitor', params: { portName: port.port_name }}">
-  <button>Monitor</button>
-</router-link>
-
+          <div>
+            <router-link :to="{ name: 'ESP Monitor', params: { portName: port.port_name }}">
+              <button>Monitor</button>
+            </router-link>
+            <router-link :to="{ name: 'flash', params: { portName: port.port_name }}">
+              <button>Flash</button>
+            </router-link>
+          </div>
         </li>
       </ul>
     </div>
