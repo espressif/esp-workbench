@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
 import ConnectedDevicesList from "./ConnectedDevicesList.vue";
+import RustDashboardTile from "./RustDashboardTile.vue";
 
 let versions = ref<string[]>([]);
 
@@ -43,6 +44,9 @@ onMounted(() => {
     <div class="tile">
       <connected-devices-list />
     </div>
+    <div class="tile">
+      <rust-dashboard-tile />
+    </div>
   </div>
 </template>
 
@@ -78,4 +82,14 @@ onMounted(() => {
   border-radius: 8px;
   background-color: #f8f8f8;
 }
+
+.tile ::v-deep h2::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background-color: lightgray;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 </style>
