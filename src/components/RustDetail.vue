@@ -32,7 +32,7 @@ onMounted(async () => {
   appWindow.listen("rust-console", event => {
     const payload = event.payload as ConsoleEvent;
     console.log(payload.message);
-    logs.value += payload.message;
+    logs.value += payload.message + "\n";
   });
 });
 

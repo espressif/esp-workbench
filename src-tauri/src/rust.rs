@@ -163,9 +163,8 @@ pub async fn install_rustup(window: Window, selected_variant: Option<&String>) -
 
 
 
-use std::fs::File;
-use std::io::copy;
-use reqwest::blocking::get;
+use tokio::fs;
+use tokio::io::AsyncWriteExt;
 
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     emit_rust_console(&window, "Installing espup...".into());
@@ -196,32 +195,38 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
         url = "https://github.com/esp-rs/espup/releases/latest/download/espup-x86_64-pc-windows-msvc.exe";
     }
 
-    // Download the binary using reqwest
-    let response = get(url).map_err(|e| format!("Failed to download espup: {}", e))?;
-    let mut dest = {
-        let fname = response
-            .url()
-            .path_segments()
-            .and_then(|segments| segments.last())
-            .and_then(|name| if name.is_empty() { None } else { Some(name) })
-            .ok_or("Failed to extract filename from URL")?;
+    // Download the binary using reqwest's async API
+    let response = reqwest::get(url).await.map_err(|e| format!("Failed to download espup: {}", e))?;
 
-        let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
-        File::create(output_dir.join(fname)).map_err(|e| format!("Failed to create file: {}", e))?
-    };
-    copy(&mut response.bytes().map_err(|e| format!("Failed to read response bytes: {}", e))?.as_ref(), &mut dest)
-        .map_err(|e| format!("Failed to copy content: {}", e))?;
-
-    // Change permission for Unix systems
     #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut permissions = dest.metadata().unwrap().permissions();
-        permissions.set_mode(0o755); // rwxr-xr-x
-        dest.set_permissions(permissions).unwrap();
-    }
+    let fname = "espup";
+    #[cfg(windows)]
+    let fname = "espup.exe";
 
-    emit_rust_console(&window, "espup downloaded successfully!".into());
+    let bytes = response.bytes().await.map_err(|e| format!("Failed to read response bytes: {}", e))?;
+
+   let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
+   let mut dest = fs::File::create(output_dir.join(fname))
+       .await
+       .map_err(|e| format!("Failed to create file: {}", e))?;
+
+   dest.write_all(&bytes).await.map_err(|e| format!("Failed to write to file: {}", e))?;
+
+   // Change permission for Unix systems
+  //  #[cfg(unix)]
+  //  {
+  //      use tokio::fs::set_permissions;
+  //      use std::os::unix::fs::PermissionsExt;
+
+  //      let permissions = fs::Permissions::from_mode(0o755); // rwxr-xr-x
+  //      set_permissions(output_dir.join(fname), permissions).await.unwrap();
+  //  }
+
+   emit_rust_console(&window, "espup downloaded successfully!".into());
+
+   Ok("espup installed successfully!".into())
+}
+
 
     // // Run "espup install", pass variant if on Windows
     // let mut command = Command::new(dest.path());
@@ -234,6 +239,3 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
     // emit_rust_console(&window, stdout_str);
 
     // emit_rust_console(&window, "espup installed successfully!".into());
-
-    Ok("espup installed successfully!".into())
-}
