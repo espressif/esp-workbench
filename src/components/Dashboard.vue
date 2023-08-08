@@ -36,7 +36,6 @@ onMounted(() => {
   <div class="grid-container">
     <div class="tile">
       <esp-idf-list class="esp-idf-list" :versions="versions" />
-      <router-link  class="add-button" to="/esp-idf">+ Install new ESP-IDF version</router-link>
     </div>
     <div class="tile">
       <disk-usage />
@@ -50,7 +49,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .add-button {
   display: inline-block;
   padding: 10px 20px;
@@ -64,10 +63,10 @@ onMounted(() => {
 .add-button:hover {
   background-color: #0056b3;
 }
+</style>
 
-.esp-idf-list {
-  padding-bottom: 1em;
-}
+<style scoped>
+
 
 .grid-container {
   display: grid;
