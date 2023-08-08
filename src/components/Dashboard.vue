@@ -83,7 +83,7 @@ onMounted(() => {
   background-color: #f8f8f8;
 }
 
-.tile ::v-deep h2::after {
+.tile :deep(h2)::after {
   content: '';
   display: block;
   height: 1px;
