@@ -1,12 +1,40 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { platform } from '@tauri-apps/api/os';
+import { appWindow } from '@tauri-apps/api/window';
+import { invoke } from '@tauri-apps/api/tauri';
 
-// For demo purposes, assuming detection logic exists
-const isWindows = true;  // or false based on the OS detection logic
+let isWindows = ref(false);
 
 let selectedToolchain = ref("xtensa");
 let selectedVariant = ref("msvc");
 let logs = ref("");
+
+type ConsoleEvent = {
+  message: string,
+}
+
+
+const installRustSupport = () => {
+  invoke('install_rust_support')
+    .then(() => {
+      console.log("Rust Support Installed");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+onMounted(async () => {
+  // const platform = await platform();
+  // isWindows.value = platform === 'win32';
+
+  appWindow.listen("rust-console", event => {
+    const payload = event.payload as ConsoleEvent;
+    console.log(payload.message);
+    logs.value += payload.message;
+  });
+});
 
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
@@ -17,8 +45,7 @@ const updateSupportedChips = () => {
 }
 
 const startInstallation = () => {
-  // Logic to invoke the installation through the `espup` crate
-  // and update the logs.
+  installRustSupport();
 }
 
 let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa

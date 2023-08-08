@@ -31,17 +31,6 @@ const checkRustSupport = async () => {
     console.error(error);
   }
 };
-
-const installRustSupport = () => {
-  invoke('install_rust_support')
-    .then(() => {
-      checkRustSupport();
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-};
-
 </script>
 
 <template>

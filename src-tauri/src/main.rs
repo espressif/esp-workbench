@@ -16,7 +16,7 @@ use esp_idf::run_install_script;
 mod flasher;
 mod monitor;
 mod rust;
-use rust::check_rust_support;
+use rust::{check_rust_support, install_rust_support};
 
 mod zip_archiver;
 use zip_archiver::{zip_dir, unzip};
@@ -311,7 +311,7 @@ fn main() {
             start_flash, stop_flash,
             start_monitor, stop_monitor,
             check_rust_support,
-            // install_rust_support
+            install_rust_support
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

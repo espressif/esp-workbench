@@ -1,5 +1,21 @@
 use std::process::Command;
 
+use tauri::{AppHandle, Manager};
+use tauri::Window;
+
+#[derive(Clone, serde::Serialize)]
+struct ConsoleEvent {
+    message: String,
+}
+
+
+pub fn emit_rust_console(window: &Window, message: String) {
+  let event = ConsoleEvent {
+      message: message,
+  };
+  window.emit("rust-console", event).unwrap();
+}
+
 pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) -> Option<String> {
   let mut cmd = Command::new(command);
   for flag in flags {
@@ -84,4 +100,66 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
       riscv: riscv_version,
       cargo: cargo_version,
   })
+}
+
+
+#[tauri::command]
+pub async fn install_rust_support(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
+    install_rustup(window, app, selected_variant).await?;
+    Ok("Success".into())
+}
+
+pub async fn install_rustup(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
+
+    // Check if rustup is already installed
+    match Command::new("rustup").arg("--version").output() {
+        Ok(output) => {
+            if output.status.success() {
+                emit_rust_console(&window, "Rustup already installed".into());
+                return Ok("Rustup already installed".into());
+            }
+        },
+        Err(_) => {}
+    }
+
+    emit_rust_console(&window, "Installing rustup...".into());
+    println!("Selected variant: {:?}", selected_variant.unwrap_or("none".into()));
+
+    // Install rustup based on the OS
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new("rustup-init.exe");
+        cmd.arg("install").arg("-y");
+
+        if let Some(variant) = &selected_variant {
+            let host = match variant.as_str() {
+                "msvc" => "--default-host x86_64-pc-windows-msvc",
+                "mingw" => "--default-host x86_64-pc-windows-gnu",
+                _ => return Err("Invalid variant".into()),
+            };
+            cmd.arg(host);
+        }
+
+        let output = cmd.output().map_err(|_| "Failed to run rustup-init.exe".to_string())?;
+        let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
+        let event = ConsoleEvent {
+          message: stdout_str,
+        };
+        app.emit_all("rust-console", event).unwrap();
+    }
+
+    #[cfg(unix)]
+    {
+        let output = Command::new("sh")
+            .arg("./rustup-init.sh")
+            .arg("-y")
+            .output()
+            .map_err(|_| "Failed to run rustup-init.sh".to_string())?;
+
+        let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
+        emit_rust_console(&window, stdout_str);
+    }
+
+    emit_rust_console(&window, "Rustup installed or already present".into());
+    Ok("Rustup installed or already present".into())
 }
