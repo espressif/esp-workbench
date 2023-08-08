@@ -105,11 +105,12 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
 
 #[tauri::command]
 pub async fn install_rust_support(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
-    install_rustup(window, app, selected_variant).await?;
+    install_rustup(window.clone(), selected_variant.as_ref()).await?;
+    install_espup(window, app, selected_variant.as_ref()).await?;
     Ok("Success".into())
 }
 
-pub async fn install_rustup(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
+pub async fn install_rustup(window: Window, selected_variant: Option<&String>) -> Result<String, String> {
 
     // Check if rustup is already installed
     match Command::new("rustup").arg("--version").output() {
@@ -123,7 +124,6 @@ pub async fn install_rustup(window: Window, app: AppHandle, selected_variant: Op
     }
 
     emit_rust_console(&window, "Installing rustup...".into());
-    println!("Selected variant: {:?}", selected_variant.unwrap_or("none".into()));
 
     // Install rustup based on the OS
     #[cfg(target_os = "windows")]
@@ -142,10 +142,7 @@ pub async fn install_rustup(window: Window, app: AppHandle, selected_variant: Op
 
         let output = cmd.output().map_err(|_| "Failed to run rustup-init.exe".to_string())?;
         let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
-        let event = ConsoleEvent {
-          message: stdout_str,
-        };
-        app.emit_all("rust-console", event).unwrap();
+        emit_rust_console(&window, stdout_str);
     }
 
     #[cfg(unix)]
@@ -162,4 +159,81 @@ pub async fn install_rustup(window: Window, app: AppHandle, selected_variant: Op
 
     emit_rust_console(&window, "Rustup installed or already present".into());
     Ok("Rustup installed or already present".into())
+}
+
+
+
+use std::fs::File;
+use std::io::copy;
+use reqwest::blocking::get;
+
+async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
+    emit_rust_console(&window, "Installing espup...".into());
+
+    let url: &'static str;
+    #[cfg(target_os = "linux")]
+    #[cfg(target_arch = "aarch64")]
+    {
+        url = "https://github.com/esp-rs/espup/releases/latest/download/espup-aarch64-unknown-linux-gnu";
+    }
+    #[cfg(target_os = "linux")]
+    #[cfg(target_arch = "x86_64")]
+    {
+        url = "https://github.com/esp-rs/espup/releases/latest/download/espup-x86_64-unknown-linux-gnu";
+    }
+    #[cfg(target_os = "macos")]
+    #[cfg(target_arch = "aarch64")]
+    {
+        url = "https://github.com/esp-rs/espup/releases/latest/download/espup-aarch64-apple-darwin";
+    }
+    #[cfg(target_os = "macos")]
+    #[cfg(target_arch = "x86_64")]
+    {
+        url = "https://github.com/esp-rs/espup/releases/latest/download/espup-x86_64-apple-darwin";
+    }
+    #[cfg(target_os = "windows")]
+    {
+        url = "https://github.com/esp-rs/espup/releases/latest/download/espup-x86_64-pc-windows-msvc.exe";
+    }
+
+    // Download the binary using reqwest
+    let response = get(url).map_err(|e| format!("Failed to download espup: {}", e))?;
+    let mut dest = {
+        let fname = response
+            .url()
+            .path_segments()
+            .and_then(|segments| segments.last())
+            .and_then(|name| if name.is_empty() { None } else { Some(name) })
+            .ok_or("Failed to extract filename from URL")?;
+
+        let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
+        File::create(output_dir.join(fname)).map_err(|e| format!("Failed to create file: {}", e))?
+    };
+    copy(&mut response.bytes().map_err(|e| format!("Failed to read response bytes: {}", e))?.as_ref(), &mut dest)
+        .map_err(|e| format!("Failed to copy content: {}", e))?;
+
+    // Change permission for Unix systems
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = dest.metadata().unwrap().permissions();
+        permissions.set_mode(0o755); // rwxr-xr-x
+        dest.set_permissions(permissions).unwrap();
+    }
+
+    emit_rust_console(&window, "espup downloaded successfully!".into());
+
+    // // Run "espup install", pass variant if on Windows
+    // let mut command = Command::new(dest.path());
+    // command.arg("install");
+    // if cfg!(target_os = "windows") && selected_variant.is_some() {
+    //     command.arg(&selected_variant.unwrap());
+    // }
+    // let output = command.output().map_err(|_| "Failed to run 'espup install'".to_string())?;
+    // let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
+    // emit_rust_console(&window, stdout_str);
+
+    // emit_rust_console(&window, "espup installed successfully!".into());
+
+    Ok("espup installed successfully!".into())
 }
