@@ -106,7 +106,8 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
 #[tauri::command]
 pub async fn install_rust_support(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
     install_rustup(window.clone(), selected_variant.as_ref()).await?;
-    install_espup(window, app, selected_variant.as_ref()).await?;
+    install_espup(window.clone(), app, selected_variant.as_ref()).await?;
+    install_rust_toolchain(window, selected_variant.as_ref());
     Ok("Success".into())
 }
 
@@ -212,30 +213,36 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 
    dest.write_all(&bytes).await.map_err(|e| format!("Failed to write to file: {}", e))?;
 
-   // Change permission for Unix systems
-  //  #[cfg(unix)]
-  //  {
-  //      use tokio::fs::set_permissions;
-  //      use std::os::unix::fs::PermissionsExt;
-
-  //      let permissions = fs::Permissions::from_mode(0o755); // rwxr-xr-x
-  //      set_permissions(output_dir.join(fname), permissions).await.unwrap();
-  //  }
-
    emit_rust_console(&window, "espup downloaded successfully!".into());
 
    Ok("espup installed successfully!".into())
 }
 
 
-    // // Run "espup install", pass variant if on Windows
-    // let mut command = Command::new(dest.path());
-    // command.arg("install");
-    // if cfg!(target_os = "windows") && selected_variant.is_some() {
-    //     command.arg(&selected_variant.unwrap());
-    // }
-    // let output = command.output().map_err(|_| "Failed to run 'espup install'".to_string())?;
-    // let stdout_str = String::from_utf8_lossy(&output.stdout).into_owned();
-    // emit_rust_console(&window, stdout_str);
+fn install_rust_toolchain(window: Window, selected_variant: Option<&String>) -> Result<String, String> {
+    emit_rust_console(&window, "Installing Rust toolchain via espup...".into());
 
-    // emit_rust_console(&window, "espup installed successfully!".into());
+    // Prepare the command to run espup
+    let mut cmd = Command::new(dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup"));
+
+    cmd.arg("install");
+
+    // If there's a variant specified for Windows, pass it as a parameter
+    #[cfg(target_os = "windows")]
+    if let Some(variant) = selected_variant {
+        cmd.arg(variant);
+    }
+
+    // Capture the output to display it later if needed
+    let output = cmd.output().map_err(|e| format!("Failed to execute espup: {}", e))?;
+
+    // Check if the command executed successfully
+    if output.status.success() {
+        emit_rust_console(&window, "Rust toolchain installed successfully via espup.".into());
+        Ok("Rust toolchain installed successfully!".into())
+    } else {
+        // Extract the error message from the command output
+        let error_msg = String::from_utf8_lossy(&output.stderr);
+        Err(format!("Failed to install Rust toolchain via espup: {}", error_msg))
+    }
+}
