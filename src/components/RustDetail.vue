@@ -29,7 +29,12 @@ const installRustSupport = () => {
     installMingw: selectedVariant.value === "mingw" && installMingw.value,
   } as RustInstallOptions;
 
-  invoke('install_rust_support', {rustInstallOptions: rustInstallOptions})
+  // Note: Tauri is using snake case for nested atributes, so it's necessary to make convertions
+  invoke('install_rust_support', {installOptions: {
+    selected_variant: rustInstallOptions.selectedVariant,
+    install_msvc: rustInstallOptions.installMsvc,
+    install_mingw: rustInstallOptions.installMingw,
+  }})
     .then(() => {
       console.log("Rust Support Installed");
     })

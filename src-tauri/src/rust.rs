@@ -285,7 +285,8 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     use std::env;
     let tmp_dir = env::temp_dir();
     let file_path = tmp_dir.join("vs_buildtools.exe");
-    fs::write(&file_path, &bytes);
+    fs::write(&file_path, &bytes).await;
+    emit_rust_console(&window, format!("Starting installer at {:?}", &file_path));
 
     // Run the installer with the necessary components
     let args = [
