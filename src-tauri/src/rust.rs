@@ -119,7 +119,7 @@ pub async fn install_rust_support(window: Window, app: AppHandle, install_option
 
     install_rustup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
     install_espup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
-    install_rust_toolchain(window, app, selected_variant.as_ref());
+    install_rust_toolchain(window, app, selected_variant.as_ref()).await?;
     Ok("Success".into())
 }
 
@@ -147,13 +147,13 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
             args.push(variant);
         }
 
-        run_external_command_with_progress(window.clone(), app, "rustup-init.exe", &args, "PROGRESS_EVENT");
+        run_external_command_with_progress(window.clone(), app, "rustup-init.exe", &args, "PROGRESS_EVENT").await;
     }
 
     #[cfg(unix)]
     {
         let args = vec!["-y"];
-        run_external_command_with_progress(&window, "./rustup-init.sh", &args).await?;
+        run_external_command_with_progress(&window, "./rustup-init.sh", &args).await;
     }
 
     emit_rust_console(&window, "Rustup installed or already present".into());
@@ -226,7 +226,7 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 }
 
 
-fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
+async fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     emit_rust_console(&window, "Installing Rust toolchain via espup... (this might take a while)".into());
 
     let espup_path = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup").to_str().unwrap().to_string();
@@ -245,7 +245,7 @@ fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Opti
         &espup_path,
         &args,
         "PROGRESS_EVENT"
-    );
+    ).await;
 
     match result {
         Ok(_) => {
@@ -283,7 +283,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
         "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
         "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621"
     ];
-    run_external_command_with_progress(window.clone(), app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...");
+    run_external_command_with_progress(window.clone(), app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...").await;
 
     emit_rust_console(&window, "Visual Studio Build Tools and Windows SDK installed successfully!".into());
 
