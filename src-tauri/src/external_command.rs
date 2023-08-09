@@ -1,7 +1,5 @@
 use std::process::Stdio;
-use std::thread;
-use std::path::Path;
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use tauri::Manager;
 use tauri::Window;

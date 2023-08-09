@@ -1,12 +1,10 @@
 use std::path::Path;
-use reqwest::StatusCode;
-use futures::StreamExt;
 use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt; // Add this line
 
 use tauri::{Window, Manager};
 
-use std::sync::{Mutex};
+use std::sync::Mutex;
 use crate::app_state::{AppState, BuilderState};
 
 const PROGRESS_EVENT: &str = "progress";

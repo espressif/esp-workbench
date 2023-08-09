@@ -2,8 +2,17 @@
 
 use tauri::{Window, Manager};
 
-use std::sync::{Mutex};
+use std::sync::Mutex;
 use crate::app_state::{AppState, BuilderState};
+use espflash::interface::Interface;
+use std::{
+  io::ErrorKind,
+  time::Duration,
+};
+use serialport::SerialPortInfo;
+use serialport::available_ports;
+use std::io;
+
 
 fn normalized<I>(iter: I) -> impl Iterator<Item = u8>
 where
@@ -30,14 +39,6 @@ fn handle_serial(buff: &[u8], window: &Window) {
 }
 
 
-use espflash::cli::{ConnectArgs};
-use espflash::flasher::Flasher;
-use espflash::interface::Interface;
-use std::{
-  io::{stdout, ErrorKind, Write},
-  time::Duration,
-};
-
 fn is_abort_state(app: tauri::AppHandle) -> bool {
   let state_mutex = app.state::<Mutex<AppState>>();
   let mut state = state_mutex.lock().unwrap();
@@ -46,10 +47,6 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
       _ => false
   }
 }
-
-use serialport::{SerialPortInfo, UsbPortInfo};
-use serialport::available_ports;
-use std::io;
 
 pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
   let ports = available_ports()?;

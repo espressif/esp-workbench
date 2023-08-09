@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use dirs;
 
@@ -36,8 +36,8 @@ enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     // Add a PoisonError, but we implement it manually later
-    #[error("the mutex was poisoned")]
-    PoisonError(String),
+    // #[error("the mutex was poisoned")]
+    // PoisonError(String),
 }
 
 #[tauri::command]
@@ -132,7 +132,7 @@ async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: St
             Ok(_) => Ok("Download finished successfully".to_string()),
             Err(_) => Ok("Download failed".to_string()),
         },
-        Err(err) => Ok("Download task panicked".to_string().to_string()),
+        Err(_) => Ok("Download task panicked".to_string().to_string()),
     }
 
 }
@@ -200,7 +200,7 @@ async fn start_monitor(window: Window, app: tauri::AppHandle, state_mutex: State
             Ok(_) => Ok("Monitoring finished successfully".to_string()),
             Err(_) => Ok("Monitoring failed".to_string()),
         },
-        Err(err) => Ok("Monitoring task panicked".to_string().to_string()),
+        Err(_) => Ok("Monitoring task panicked".to_string().to_string()),
     }
 }
 
@@ -240,7 +240,7 @@ async fn start_flash(window: Window, app: tauri::AppHandle, state_mutex: State<'
             Ok(_) => Ok("Flashing finished successfully".to_string()),
             Err(_) => Ok("flashing failed".to_string()),
         },
-        Err(err) => Ok("Flashing task panicked".to_string().to_string()),
+        Err(_) => Ok("Flashing task panicked".to_string().to_string()),
     }
 }
 

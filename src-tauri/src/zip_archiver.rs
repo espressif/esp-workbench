@@ -10,7 +10,7 @@ use zip::result::ZipError;
 use zip::write::FileOptions;
 
 use tauri::{Window, Manager};
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use crate::app_state::{AppState, BuilderState};
 

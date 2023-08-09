@@ -1,14 +1,11 @@
-use std::process::{Command, Child, Stdio};
+use std::process::{Command, Stdio};
 use std::io::{BufReader, BufRead};
-use std::time::Duration;
 use std::thread;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use tauri::{Window, Manager};
 
 use crate::app_state::{AppState, BuilderState};
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use std::path::Path;
 use crate::download::download_file;
