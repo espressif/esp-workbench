@@ -44,6 +44,7 @@ pub fn run_external_command_with_progress(
   let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
 
   let child_handle = thread::spawn(move || {
+      emit_rust_console(&window, format!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" ")));
       // Launch the command
       let mut child = Command::new(&cmd_name_owned) // Use the owned data here
           .args(&cmd_args_owned)                    // And here

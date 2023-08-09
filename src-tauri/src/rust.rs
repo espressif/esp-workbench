@@ -248,6 +248,7 @@ fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Opti
     // If there's a variant specified for Windows, pass it as a parameter
     #[cfg(target_os = "windows")]
     if let Some(variant) = selected_variant {
+        args.push("--default-host");
         args.push(variant);
     }
 
@@ -286,7 +287,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     let tmp_dir = env::temp_dir();
     let file_path = tmp_dir.join("vs_buildtools.exe");
     fs::write(&file_path, &bytes).await;
-    emit_rust_console(&window, format!("Starting installer at {:?}", &file_path));
+    emit_rust_console(&window, format!("Starting installer at {:?}", &file_path.display()));
 
     // Run the installer with the necessary components
     let args = [
