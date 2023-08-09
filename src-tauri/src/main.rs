@@ -12,7 +12,7 @@ mod download;
 
 mod esp_idf;
 use esp_idf::run_install_script;
-
+mod external_command;
 mod flasher;
 mod monitor;
 mod rust;

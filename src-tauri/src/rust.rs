@@ -3,18 +3,9 @@ use std::process::Command;
 use tauri::{AppHandle, Manager};
 use tauri::Window;
 
-#[derive(Clone, serde::Serialize)]
-struct ConsoleEvent {
-    message: String,
-}
 
+use external_command::{run_external_command_with_progress, emit_rust_console};
 
-pub fn emit_rust_console(window: &Window, message: String) {
-  let event = ConsoleEvent {
-      message: message,
-  };
-  window.emit("rust-console", event).unwrap();
-}
 
 pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) -> Option<String> {
   let mut cmd = Command::new(command);
@@ -106,8 +97,8 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
 #[tauri::command]
 pub async fn install_rust_support(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
     install_rustup(window.clone(), selected_variant.as_ref()).await?;
-    install_espup(window.clone(), app, selected_variant.as_ref()).await?;
-    install_rust_toolchain(window, selected_variant.as_ref());
+    install_espup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
+    install_rust_toolchain(window, app, selected_variant.as_ref());
     Ok("Success".into())
 }
 
@@ -167,6 +158,8 @@ pub async fn install_rustup(window: Window, selected_variant: Option<&String>) -
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
+use crate::external_command;
+
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     emit_rust_console(&window, "Installing espup...".into());
 
@@ -219,31 +212,34 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 }
 
 
-fn install_rust_toolchain(window: Window, selected_variant: Option<&String>) -> Result<String, String> {
+fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     emit_rust_console(&window, "Installing Rust toolchain via espup... (this might take a while)".into());
 
-    // Prepare the command to run espup
-    let mut cmd = Command::new(dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup"));
+    let espup_path = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup").to_str().unwrap().to_string();
 
-    cmd.arg("install");
-
+    let mut args = vec!["install"];
     // If there's a variant specified for Windows, pass it as a parameter
     #[cfg(target_os = "windows")]
     if let Some(variant) = selected_variant {
-        cmd.arg(variant);
+        args.push(variant);
     }
 
-    // Capture the output to display it later if needed
-    let output = cmd.output().map_err(|e| format!("Failed to execute espup: {}", e))?;
+    let result = run_external_command_with_progress(
+        window.clone(),
+        app.clone(),
+        &espup_path,
+        &args,
+        "PROGRESS_EVENT"
+    );
 
-    // Check if the command executed successfully
-    if output.status.success() {
-        emit_rust_console(&window, "Rust toolchain installed successfully via espup.".into());
-        Ok("Rust toolchain installed successfully!".into())
-    } else {
-        // Extract the error message from the command output
-        let error_msg = String::from_utf8_lossy(&output.stderr);
-        emit_rust_console(&window, "Failed to install Rust toolchain via espup.".into());
-        Err(format!("Failed to install Rust toolchain via espup: {}", error_msg))
+    match result {
+        Ok(_) => {
+            emit_rust_console(&window, "Rust toolchain installed successfully via espup.".into());
+            Ok("Rust toolchain installed successfully!".into())
+        }
+        Err(_) => {
+            emit_rust_console(&window, "Failed to install Rust toolchain via espup.".into());
+            Err("Failed to install Rust toolchain via espup.".into())
+        }
     }
 }
