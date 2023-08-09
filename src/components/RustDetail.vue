@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
+import {
+        default as AnsiUp
+    } from 'ansi_up';
 
 let isWindows = ref(false);
 
@@ -11,6 +14,7 @@ let selectedVariant = ref("x86_64-pc-windows-msvc");
 let installMsvc = ref(true);
 let installMingw = ref(false);
 let logs = ref("");
+const ansi_up = new AnsiUp();
 
 type ConsoleEvent = {
   message: string,
@@ -47,7 +51,8 @@ onMounted(async () => {
   appWindow.listen("rust-console", event => {
     const payload = event.payload as ConsoleEvent;
     console.log(payload.message);
-    logs.value += payload.message + "\n";
+    const htmlMessage = ansi_up.ansi_to_html(payload.message);
+    logs.value += htmlMessage + "<br>";
   });
 
   const platform = await invoke('get_platform');
@@ -115,7 +120,7 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
     <!-- Display Installation Logs -->
     <div class="log-section">
       <h3>Installation Logs:</h3>
-      <textarea readonly :value="logs"></textarea>
+      <div class="log-output" v-html="logs"></div>
     </div>
 
   </div>
@@ -128,13 +133,19 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 500px;
+  /* max-width: 500px; */
   margin: auto;
 }
 
-.log-section textarea {
+.log-output {
   width: 100%;
   height: 300px;
-  resize: none;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 8px;
+  white-space: pre-wrap;  /* Preserves whitespace & line breaks */
+  font-family: monospace;
+  background-color: #f8f8f8;
+  text-align: left;
 }
 </style>
