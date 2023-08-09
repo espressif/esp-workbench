@@ -220,7 +220,7 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 
 
 fn install_rust_toolchain(window: Window, selected_variant: Option<&String>) -> Result<String, String> {
-    emit_rust_console(&window, "Installing Rust toolchain via espup...".into());
+    emit_rust_console(&window, "Installing Rust toolchain via espup... (this might take a while)".into());
 
     // Prepare the command to run espup
     let mut cmd = Command::new(dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup"));
@@ -243,6 +243,7 @@ fn install_rust_toolchain(window: Window, selected_variant: Option<&String>) -> 
     } else {
         // Extract the error message from the command output
         let error_msg = String::from_utf8_lossy(&output.stderr);
+        emit_rust_console(&window, "Failed to install Rust toolchain via espup.".into());
         Err(format!("Failed to install Rust toolchain via espup: {}", error_msg))
     }
 }
