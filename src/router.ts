@@ -23,6 +23,11 @@ const routes: Array<RouteRecordRaw> = [
     name: "flash",
     component: () => import("./components/Flash.vue"),
   },
+  {
+    path: "/rust",
+    name: "rust",
+    component: () => import("./components/RustDetail.vue"),
+  }
 ];
 
 const router = createRouter({

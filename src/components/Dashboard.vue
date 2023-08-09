@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
 import ConnectedDevicesList from "./ConnectedDevicesList.vue";
+import RustDashboardTile from "./RustDashboardTile.vue";
 
 let versions = ref<string[]>([]);
 
@@ -35,7 +36,6 @@ onMounted(() => {
   <div class="grid-container">
     <div class="tile">
       <esp-idf-list class="esp-idf-list" :versions="versions" />
-      <router-link  class="add-button" to="/esp-idf">+ Install new ESP-IDF version</router-link>
     </div>
     <div class="tile">
       <disk-usage />
@@ -43,10 +43,13 @@ onMounted(() => {
     <div class="tile">
       <connected-devices-list />
     </div>
+    <div class="tile">
+      <rust-dashboard-tile />
+    </div>
   </div>
 </template>
 
-<style scoped>
+<style>
 .add-button {
   display: inline-block;
   padding: 10px 20px;
@@ -60,10 +63,10 @@ onMounted(() => {
 .add-button:hover {
   background-color: #0056b3;
 }
+</style>
 
-.esp-idf-list {
-  padding-bottom: 1em;
-}
+<style scoped>
+
 
 .grid-container {
   display: grid;
@@ -78,4 +81,14 @@ onMounted(() => {
   border-radius: 8px;
   background-color: #f8f8f8;
 }
+
+.tile :deep(h2)::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background-color: lightgray;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
 </style>

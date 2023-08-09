@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Mutex};
 
 use dirs;
 
@@ -11,19 +11,20 @@ use app_state::{AppState, BuilderState};
 mod download;
 
 mod esp_idf;
-use esp_idf::{run_install_script};
-
+use esp_idf::run_install_script;
+mod external_command;
 mod flasher;
 mod monitor;
+mod rust;
+use rust::{check_rust_support, install_rust_support};
 
 mod zip_archiver;
 use zip_archiver::{zip_dir, unzip};
 
-use serde::Serialize;
 use thiserror;
 use tauri::{State, Window};
 
-use sysinfo::{NetworkExt, NetworksExt, ProcessExt, System, SystemExt, DiskExt};
+use sysinfo::{System, SystemExt, DiskExt};
 use serialport::available_ports;
 
 // Create a custom Error that we can return in Results
@@ -308,7 +309,10 @@ fn main() {
         .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage,
             get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script,
             start_flash, stop_flash,
-            start_monitor, stop_monitor])
+            start_monitor, stop_monitor,
+            check_rust_support,
+            install_rust_support
+            ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
