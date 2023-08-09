@@ -39,49 +39,78 @@ pub fn run_external_command_with_progress(
   progress_event: &str
 ) -> Result<String, ()> {
 
-  // Convert the references to owned data
-  let cmd_name_owned = cmd_name.to_string();
-  let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
+    // Convert the references to owned data
+    let cmd_name_owned = cmd_name.to_string();
+    let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
 
-  let child_handle = thread::spawn(move || {
-      emit_rust_console(&window, format!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" ")));
-      // Launch the command
-      let mut child = Command::new(&cmd_name_owned) // Use the owned data here
-          .args(&cmd_args_owned)                    // And here
-          .stdout(Stdio::piped())
-          .stderr(Stdio::piped())
-          .spawn()
-          .expect("Failed to launch command");
+    let child_handle = thread::spawn(move || -> Result<String, ()> {
+        emit_rust_console(&window.clone(), format!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" ")));
 
-      let stdout = child.stderr.take().unwrap();
-      let reader = BufReader::new(stdout);
+        // Launch the command
+        let mut child = Command::new(&cmd_name_owned)
+            .args(&cmd_args_owned)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("Failed to launch command");
 
-      // Read the command's output line by line
-      for line in reader.lines() {
-          let line = line.expect("Failed to read line");
-          println!("{}", line);
-          // window.emit(progress_event, line).unwrap();
-          emit_rust_console(&window, line);
+        let stdout = child.stdout.take().unwrap();
+        let stderr = child.stderr.take().unwrap();
 
-          // If is_abort_state is true, kill the command
-          if is_abort_state(app.clone()) {
-              child.kill().expect("Failed to kill command");
-              break;
-          }
-      }
+        let window_clone_std = window.clone();
+        let window_clone_err = window.clone();
 
-      // window.emit(progress_event, "Done".to_string()).unwrap();
-      emit_rust_console(&window, "Done".to_string());
+        // Thread for stdout
+        let stdout_handle = thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            for line in reader.lines() {
+                let line = line.expect("Failed to read line from stdout");
+                emit_rust_console(&window_clone_std, line);
+            }
+        });
 
-      // Wait for the child to exit completely
-      child.wait().expect("Failed to wait on child");
-  });
+        // Thread for stderr
+        let stderr_handle = thread::spawn(move || {
+            let reader = BufReader::new(stderr);
+            for line in reader.lines() {
+                let line = line.expect("Failed to read line from stderr");
+                emit_rust_console(&window_clone_err, line);
+            }
+        });
 
-  // Wait for the child process to finish
-  child_handle.join().unwrap();
+        loop {
+            if let Some(status) = child.try_wait().expect("Failed to wait on child process") {
+                if status.success() {
+                    break;
+                } else {
+                    emit_rust_console(&window, format!("Child process exited with {:?}", status));
+                    return Err(());
+                }
+            }
 
-  Ok("Success".to_string())
+            if is_abort_state(app.clone()) {
+                child.kill().expect("Failed to kill command");
+                break;
+            }
+
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+
+        stdout_handle.join().unwrap();
+        stderr_handle.join().unwrap();
+
+        emit_rust_console(&window, "Done".to_string());
+        // Wait for the child to exit completely
+        child.wait().expect("Failed to wait on child");
+
+        Ok("Child process completed successfully".to_string())
+    });
+
+    let result = child_handle.join().expect("Thread panicked");
+    result // Return the result of the thread's execution to the caller of `run_external_command_with_progress`
 }
+
+
 
 
 #[cfg(unix)]
