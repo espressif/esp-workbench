@@ -88,13 +88,13 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
       <!-- Checkbox for MSVC Dependencies -->
       <div v-if="selectedVariant === 'msvc'">
         <input type="checkbox" v-model="installMsvc" id="installMsvcCheckbox">
-        <label for="installMsvcCheckbox">Install VC Tools and Windows SDK (approx size X GB)</label>
+        <label for="installMsvcCheckbox">Install VC Tools and Windows SDK</label>
       </div>
 
       <!-- Checkbox for MinGW Dependencies -->
       <div v-if="selectedVariant === 'mingw'">
         <input type="checkbox" v-model="installMingw" id="installMingwCheckbox">
-        <label for="installMingwCheckbox">Install MinGW Dependencies (approx size Y GB)</label>
+        <label for="installMingwCheckbox">Install MinGW Dependencies</label>
       </div>
     </div>
 

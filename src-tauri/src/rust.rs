@@ -6,6 +6,9 @@ use tauri::Window;
 
 use external_command::{run_external_command_with_progress, emit_rust_console};
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+#[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x08000000; // Windows specific constant to hide console window
 
 pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) -> Option<String> {
@@ -271,7 +274,7 @@ fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Opti
 
 #[cfg(target_os = "windows")]
 async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Result<String, String> {
-    emit_rust_console(&window, "Downloading Visual Studio Build Tools and Windows SDK...".into());
+    emit_rust_console(&window.clone(), "Downloading Visual Studio Build Tools and Windows SDK...".into());
 
     // Download vs_buildtools.exe
     let url = "https://aka.ms/vs/17/release/vs_buildtools.exe";
@@ -279,9 +282,10 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     let bytes = response.bytes().await.map_err(|e| format!("Failed to read response bytes: {}", e))?;
 
     // Save to a temporary location
+    use std::env;
     let tmp_dir = env::temp_dir();
     let file_path = tmp_dir.join("vs_buildtools.exe");
-    fs::write(&file_path, &bytes).map_err(|e| format!("Failed to write to file: {}", e))?;
+    fs::write(&file_path, &bytes);
 
     // Run the installer with the necessary components
     let args = [
@@ -290,7 +294,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
         "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
         "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621"
     ];
-    run_external_command_with_progress(window, app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...")?;
+    run_external_command_with_progress(window.clone(), app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...");
 
     emit_rust_console(&window, "Visual Studio Build Tools and Windows SDK installed successfully!".into());
 
