@@ -52,7 +52,7 @@ pub fn run_external_command_with_progress(
           .spawn()
           .expect("Failed to launch command");
 
-      let stdout = child.stdout.take().unwrap();
+      let stdout = child.stderr.take().unwrap();
       let reader = BufReader::new(stdout);
 
       // Read the command's output line by line
