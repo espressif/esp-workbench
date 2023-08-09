@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { platform } from '@tauri-apps/api/os';
+import { ref, onMounted } from 'vue';
+// import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
 
