@@ -7,7 +7,7 @@ import { invoke } from '@tauri-apps/api/tauri';
 let isWindows = ref(false);
 
 let selectedToolchain = ref("xtensa");
-let selectedVariant = ref("msvc");
+let selectedVariant = ref("x86_64-pc-windows-msvc");
 let installMsvc = ref(true);
 let installMingw = ref(false);
 let logs = ref("");
@@ -25,8 +25,8 @@ interface RustInstallOptions {
 const installRustSupport = () => {
   let rustInstallOptions = {
     selectedVariant: selectedVariant.value,
-    installMsvc: selectedVariant.value === "msvc" && installMsvc.value,
-    installMingw: selectedVariant.value === "mingw" && installMingw.value,
+    installMsvc: selectedVariant.value === "x86_64-pc-windows-msvc" && installMsvc.value,
+    installMingw: selectedVariant.value === "x86_64-pc-windows-gnu" && installMingw.value,
   } as RustInstallOptions;
 
   // Note: Tauri is using snake case for nested atributes, so it's necessary to make convertions
@@ -86,18 +86,18 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
     <div v-if="isWindows && selectedToolchain === 'xtensa'">
       <label for="variant">Choose Variant:</label>
       <select v-model="selectedVariant">
-        <option value="msvc">MSVC (default)</option>
-        <option value="mingw">MinGW</option>
+        <option value="x86_64-pc-windows-msvc">MSVC (default)</option>
+        <option value="x86_64-pc-windows-gnu">MinGW</option>
       </select>
 
       <!-- Checkbox for MSVC Dependencies -->
-      <div v-if="selectedVariant === 'msvc'">
+      <div v-if="selectedVariant === 'x86_64-pc-windows-msvc'">
         <input type="checkbox" v-model="installMsvc" id="installMsvcCheckbox">
         <label for="installMsvcCheckbox">Install VC Tools and Windows SDK</label>
       </div>
 
       <!-- Checkbox for MinGW Dependencies -->
-      <div v-if="selectedVariant === 'mingw'">
+      <div v-if="selectedVariant === 'x86_64-pc-windows-gnu'">
         <input type="checkbox" v-model="installMingw" id="installMingwCheckbox">
         <label for="installMingwCheckbox">Install MinGW Dependencies</label>
       </div>
