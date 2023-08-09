@@ -3,20 +3,42 @@ import { ref, onMounted } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
+import {
+        default as AnsiUp
+    } from 'ansi_up';
 
 let isWindows = ref(false);
 
 let selectedToolchain = ref("xtensa");
-let selectedVariant = ref("msvc");
+let selectedVariant = ref("x86_64-pc-windows-msvc");
+let installMsvc = ref(true);
+let installMingw = ref(false);
 let logs = ref("");
+const ansi_up = new AnsiUp();
 
 type ConsoleEvent = {
   message: string,
 }
 
+interface RustInstallOptions {
+    selectedVariant?: string;
+    installMsvc: boolean;
+    installMingw: boolean;
+}
 
 const installRustSupport = () => {
-  invoke('install_rust_support')
+  let rustInstallOptions = {
+    selectedVariant: selectedVariant.value,
+    installMsvc: selectedVariant.value === "x86_64-pc-windows-msvc" && installMsvc.value,
+    installMingw: selectedVariant.value === "x86_64-pc-windows-gnu" && installMingw.value,
+  } as RustInstallOptions;
+
+  // Note: Tauri is using snake case for nested atributes, so it's necessary to make convertions
+  invoke('install_rust_support', {installOptions: {
+    selected_variant: rustInstallOptions.selectedVariant,
+    install_msvc: rustInstallOptions.installMsvc,
+    install_mingw: rustInstallOptions.installMingw,
+  }})
     .then(() => {
       console.log("Rust Support Installed");
     })
@@ -26,15 +48,17 @@ const installRustSupport = () => {
 };
 
 onMounted(async () => {
-  // const platform = await platform();
-  // isWindows.value = platform === 'win32';
-
   appWindow.listen("rust-console", event => {
     const payload = event.payload as ConsoleEvent;
     console.log(payload.message);
-    logs.value += payload.message + "\n";
+    const htmlMessage = ansi_up.ansi_to_html(payload.message);
+    logs.value += htmlMessage + "<br>";
   });
+
+  const platform = await invoke('get_platform');
+  isWindows.value = platform === 'win32';
 });
+
 
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
@@ -67,9 +91,21 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
     <div v-if="isWindows && selectedToolchain === 'xtensa'">
       <label for="variant">Choose Variant:</label>
       <select v-model="selectedVariant">
-        <option value="msvc">MSVC (default)</option>
-        <option value="mingw">MinGW</option>
+        <option value="x86_64-pc-windows-msvc">MSVC (default)</option>
+        <option value="x86_64-pc-windows-gnu">MinGW</option>
       </select>
+
+      <!-- Checkbox for MSVC Dependencies -->
+      <div v-if="selectedVariant === 'x86_64-pc-windows-msvc'">
+        <input type="checkbox" v-model="installMsvc" id="installMsvcCheckbox">
+        <label for="installMsvcCheckbox">Install VC Tools and Windows SDK</label>
+      </div>
+
+      <!-- Checkbox for MinGW Dependencies -->
+      <div v-if="selectedVariant === 'x86_64-pc-windows-gnu'">
+        <input type="checkbox" v-model="installMingw" id="installMingwCheckbox">
+        <label for="installMingwCheckbox">Install MinGW Dependencies</label>
+      </div>
     </div>
 
     <!-- Display Supported Chips -->
@@ -84,11 +120,12 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
     <!-- Display Installation Logs -->
     <div class="log-section">
       <h3>Installation Logs:</h3>
-      <textarea readonly :value="logs"></textarea>
+      <div class="log-output" v-html="logs"></div>
     </div>
 
   </div>
 </template>
+
 
 
 <style scoped>
@@ -96,13 +133,19 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 500px;
+  /* max-width: 500px; */
   margin: auto;
 }
 
-.log-section textarea {
+.log-output {
   width: 100%;
   height: 300px;
-  resize: none;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 8px;
+  white-space: pre-wrap;  /* Preserves whitespace & line breaks */
+  font-family: monospace;
+  background-color: #f8f8f8;
+  text-align: left;
 }
 </style>

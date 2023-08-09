@@ -49,8 +49,8 @@ const checkRustSupport = async () => {
       <p>
         <strong>Cargo:</strong> <span v-if="cargo">{{ cargo }}</span> <span v-else>Not Installed</span>
       </p>
-      <router-link class="add-button" to="/rust">+ Install Rust Support</router-link>
     </div>
+    <router-link class="add-button" to="/rust">+ Install Rust Support</router-link>
   </div>
 </template>
 

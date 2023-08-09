@@ -18,8 +18,8 @@ futures = "0.3.28"
 reqwest = { version = "0.11", features = ["blocking"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tauri = { version = "1.4", features = [ "os-all", "updater", "path-all", "dialog-ask", "dialog-confirm", "dialog-open", "shell-open"] }
-tokio = { version = "1.29.1" }
+tauri = { version = "1.4", features = [ "updater", "path-all", "dialog-ask", "dialog-confirm", "dialog-open", "shell-open"] }
+tokio = { version = "1.29.1", features = [ "io-util", "macros", "process" ] }
 thiserror = "1.0.44"
 zip = "0.6.6"
 walkdir = "2.3.3"

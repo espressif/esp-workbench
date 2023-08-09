@@ -106,7 +106,7 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
     let serial_port_info = get_serial_port_info(port.as_str()).unwrap();
     let port_info = match &serial_port_info.port_type {
         serialport::SerialPortType::UsbPort(info) => Some(info.clone()),
-        _ => return Err(("Port is not a USB port".to_string() ))
+        _ => return Err("Port is not a USB port".to_string() )
     };
     let mut serial = Interface::new(&serial_port_info, dtr, rts).unwrap();
 
