@@ -81,3 +81,21 @@ pub fn run_external_command_with_progress(
 
   Ok("Success".to_string())
 }
+
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
+#[cfg(unix)]
+pub fn set_exec_permission(path: &std::path::Path) -> std::io::Result<()> {
+    use std::fs;
+
+    let mut perms = fs::metadata(path)?.permissions();
+    perms.set_mode(0o755); // rwxr-xr-x
+    fs::set_permissions(path, perms)
+}
+
+#[cfg(windows)]
+pub fn set_exec_permission(path: &std::path::Path) -> std::io::Result<()> {
+  todo!()
+}

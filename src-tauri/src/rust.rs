@@ -159,6 +159,7 @@ use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
 use crate::external_command;
+use crate::external_command::set_exec_permission;
 
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     emit_rust_console(&window, "Installing espup...".into());
@@ -199,16 +200,21 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 
     let bytes = response.bytes().await.map_err(|e| format!("Failed to read response bytes: {}", e))?;
 
-   let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
-   let mut dest = fs::File::create(output_dir.join(fname))
+    let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
+    let output_path = output_dir.join(fname);
+    let mut dest = fs::File::create(&output_path)
        .await
        .map_err(|e| format!("Failed to create file: {}", e))?;
 
-   dest.write_all(&bytes).await.map_err(|e| format!("Failed to write to file: {}", e))?;
+    dest.write_all(&bytes).await.map_err(|e| format!("Failed to write to file: {}", e))?;
 
-   emit_rust_console(&window, "espup downloaded successfully!".into());
+    // Set execute permission for the binary on Unix-based systems
+    #[cfg(unix)]
+    set_exec_permission(&output_path).map_err(|e| format!("Failed to set execute permissions: {}", e))?;
 
-   Ok("espup installed successfully!".into())
+    emit_rust_console(&window, "espup downloaded successfully!".into());
+
+    Ok("espup installed successfully!".into())
 }
 
 
