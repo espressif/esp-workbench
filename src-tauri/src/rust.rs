@@ -6,12 +6,16 @@ use tauri::Window;
 
 use external_command::{run_external_command_with_progress, emit_rust_console};
 
+const CREATE_NO_WINDOW: u32 = 0x08000000; // Windows specific constant to hide console window
 
 pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) -> Option<String> {
   let mut cmd = Command::new(command);
   for flag in flags {
       cmd.arg(flag);
   }
+
+  #[cfg(windows)]
+  cmd.creation_flags(CREATE_NO_WINDOW);
 
   let output = cmd.output().ok()?;
 
