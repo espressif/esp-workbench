@@ -153,7 +153,7 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
     #[cfg(unix)]
     {
         let args = vec!["-y"];
-        run_external_command_with_progress(&window, "./rustup-init.sh", &args).await;
+        run_external_command_with_progress(window.clone(), app, "./rustup-init.sh", &args, "PROGRESS_EVENT").await;
     }
 
     emit_rust_console(&window, "Rustup installed or already present".into());
