@@ -93,9 +93,23 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
   })
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct RustInstallOptions {
+    selected_variant: Option<String>,
+    install_msvc: bool,
+    install_mingw: bool,
+}
 
 #[tauri::command]
-pub async fn install_rust_support(window: Window, app: AppHandle, selected_variant: Option<String>) -> Result<String, String> {
+pub async fn install_rust_support(window: Window, app: AppHandle, install_options: RustInstallOptions) -> Result<String, String> {
+    let selected_variant = install_options.selected_variant;
+    #[cfg(target_os = "windows")]
+    {
+        if install_options.install_msvc {
+            install_vc_tools_and_sdk(window.clone(), app.clone()).await?;
+        }
+    }
+
     install_rustup(window.clone(), selected_variant.as_ref()).await?;
     install_espup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
     install_rust_toolchain(window, app, selected_variant.as_ref());
@@ -248,4 +262,33 @@ fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Opti
             Err("Failed to install Rust toolchain via espup.".into())
         }
     }
+}
+
+
+#[cfg(target_os = "windows")]
+async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Result<String, String> {
+    emit_rust_console(&window, "Downloading Visual Studio Build Tools and Windows SDK...".into());
+
+    // Download vs_buildtools.exe
+    let url = "https://aka.ms/vs/17/release/vs_buildtools.exe";
+    let response = reqwest::get(url).await.map_err(|e| format!("Failed to download VS Build Tools: {}", e))?;
+    let bytes = response.bytes().await.map_err(|e| format!("Failed to read response bytes: {}", e))?;
+
+    // Save to a temporary location
+    let tmp_dir = env::temp_dir();
+    let file_path = tmp_dir.join("vs_buildtools.exe");
+    fs::write(&file_path, &bytes).map_err(|e| format!("Failed to write to file: {}", e))?;
+
+    // Run the installer with the necessary components
+    let args = [
+        "--passive",
+        "--wait",
+        "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621"
+    ];
+    run_external_command_with_progress(window, app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...")?;
+
+    emit_rust_console(&window, "Visual Studio Build Tools and Windows SDK installed successfully!".into());
+
+    Ok("Visual Studio Build Tools and Windows SDK installed successfully!".into())
 }

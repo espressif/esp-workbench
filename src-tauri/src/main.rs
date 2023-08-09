@@ -15,6 +15,8 @@ use esp_idf::run_install_script;
 mod external_command;
 mod flasher;
 mod monitor;
+mod os;
+use os::get_platform;
 mod rust;
 use rust::{check_rust_support, install_rust_support};
 
@@ -311,7 +313,8 @@ fn main() {
             start_flash, stop_flash,
             start_monitor, stop_monitor,
             check_rust_support,
-            install_rust_support
+            install_rust_support,
+            get_platform
             ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

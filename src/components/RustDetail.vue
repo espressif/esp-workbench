@@ -8,15 +8,28 @@ let isWindows = ref(false);
 
 let selectedToolchain = ref("xtensa");
 let selectedVariant = ref("msvc");
+let installMsvc = ref(true);
+let installMingw = ref(false);
 let logs = ref("");
 
 type ConsoleEvent = {
   message: string,
 }
 
+interface RustInstallOptions {
+    selectedVariant?: string;
+    installMsvc: boolean;
+    installMingw: boolean;
+}
 
 const installRustSupport = () => {
-  invoke('install_rust_support')
+  let rustInstallOptions = {
+    selectedVariant: selectedVariant.value,
+    installMsvc: selectedVariant.value === "msvc" && installMsvc.value,
+    installMingw: selectedVariant.value === "mingw" && installMingw.value,
+  } as RustInstallOptions;
+
+  invoke('install_rust_support', {rustInstallOptions: rustInstallOptions})
     .then(() => {
       console.log("Rust Support Installed");
     })
@@ -26,15 +39,16 @@ const installRustSupport = () => {
 };
 
 onMounted(async () => {
-  // const platform = await platform();
-  // isWindows.value = platform === 'win32';
-
   appWindow.listen("rust-console", event => {
     const payload = event.payload as ConsoleEvent;
     console.log(payload.message);
     logs.value += payload.message + "\n";
   });
+
+  const platform = await invoke('get_platform');
+  isWindows.value = platform === 'win32';
 });
+
 
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
@@ -70,6 +84,18 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
         <option value="msvc">MSVC (default)</option>
         <option value="mingw">MinGW</option>
       </select>
+
+      <!-- Checkbox for MSVC Dependencies -->
+      <div v-if="selectedVariant === 'msvc'">
+        <input type="checkbox" v-model="installMsvc" id="installMsvcCheckbox">
+        <label for="installMsvcCheckbox">Install VC Tools and Windows SDK (approx size X GB)</label>
+      </div>
+
+      <!-- Checkbox for MinGW Dependencies -->
+      <div v-if="selectedVariant === 'mingw'">
+        <input type="checkbox" v-model="installMingw" id="installMingwCheckbox">
+        <label for="installMingwCheckbox">Install MinGW Dependencies (approx size Y GB)</label>
+      </div>
     </div>
 
     <!-- Display Supported Chips -->
@@ -89,6 +115,7 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
 
   </div>
 </template>
+
 
 
 <style scoped>
