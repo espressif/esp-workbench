@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow } from '@tauri-apps/api/window';
 import PathSelector from "./PathSelector.vue";
 import VersionSelector from "./VersionSelector.vue";
+import LogConsole from './LogConsole.vue';
 
 const props = defineProps({
   espIdfPath: String,
@@ -15,12 +16,6 @@ const props = defineProps({
 const buildStatus = ref("");
 let isInstalling = ref(false);
 let isAborted = ref(false);
-
-type Payload = {
-  pct: string,
-}
-
-appWindow.listen('progress', ({payload}) => buildStatus.value = (payload as Payload).pct);
 
 async function installEspIdf() {
   try {
@@ -81,9 +76,9 @@ function abortBuild() {
         <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
         <div v-if="isInstalling" class="led"></div>
       </div>
-      <div class="build-status">{{ buildStatus }}</div>
     </div>
 
+    <LogConsole />
 
     <div class="button-container">
       <button v-if="!isInstalling" @click="installEspIdf()">Install ESP-IDF</button>

@@ -1,6 +1,5 @@
-use std::process::{Command, Stdio};
-use std::io::{BufReader, BufRead};
-use std::thread;
+
+use log::info;
 
 use tauri::{Window, Manager};
 
@@ -9,6 +8,8 @@ use std::sync::Mutex;
 
 use std::path::Path;
 use crate::download::download_file;
+
+use crate::external_command::run_external_command_with_progress;
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -41,57 +42,20 @@ pub fn run_install_script(
 {
     let file_path = Path::new(&esp_idf_path).join(INSTALL_SCRIPT_NAME);
     println!("Running install script: {:?}", file_path);
-    let child_handle = thread::spawn(move || {
-        // Launch the script
-        #[cfg(unix)]
-        let mut child = Command::new("bash")
-            .arg(file_path)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("Failed to launch script");
-        #[cfg(windows)]
-        let mut child = Command::new("cmd")
-            .arg("/c")
-            .arg(file_path)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("Failed to launch script");
 
-        let stdout = child.stdout.take().unwrap();
-        let reader = BufReader::new(stdout);
+    #[cfg(unix)]
+    {
+        let args = vec![file_path.to_str().unwrap()];
+        run_external_command_with_progress(window.clone(), app.clone(), "bash", &args, PROGRESS_EVENT);
+    }
 
-        // Read the script's output line by line
-        for line in reader.lines() {
-            let line = line.expect("Failed to read line");
-            println!("{}", line);
-            let payload = Payload {
-                pct: line,
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
-
-            // If is_abort_state is true, kill the script
-            if is_abort_state(app.clone()) {
-                child.kill().expect("Failed to kill script");
-                break;
-            }
-        }
-
-        let payload = Payload {
-            pct: "Done".to_string(),
-        };
-        window.emit(PROGRESS_EVENT, payload).unwrap();
-
-        // Wait for the child to exit completely
-        child.wait().expect("Failed to wait on child");
-    });
-
-    // Wait for the child process to finish
-    child_handle.join().unwrap();
+    #[cfg(windows)]
+    {
+        let args = vec!["/c", file_path.to_str().unwrap()];
+        run_external_command_with_progress(window.clone(), app.clone(), "cmd", &args, PROGRESS_EVENT);
+    }
 
     Ok("Success".to_string())
-
 }
 
 pub async fn download_esp_idf(window: Window,
