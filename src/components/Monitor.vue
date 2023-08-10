@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
 
+let isMonitoring = ref(true);
 let logData = ref("");
 let port = ref("");
 type Payload = {
@@ -16,6 +17,7 @@ onMounted(() => {
     .catch((error) => {
       console.error(error);
     });
+  isMonitoring.value = true;
 });
 
 onUnmounted(() => {
@@ -26,6 +28,7 @@ onUnmounted(() => {
 });
 
 const stopMonitoring = () => {
+  isMonitoring.value = false;
   invoke('stop_monitor')
     .catch((error) => {
       console.error(error);
@@ -34,10 +37,39 @@ const stopMonitoring = () => {
 </script>
 
 <template>
-  <div>
-    <h2>Monitoring Port {{ port }}</h2>
-    <button @click="stopMonitoring">Stop</button>
-    <pre class="console">{{ logData }}</pre>
+  <div class="monitor">
+    <div class="animation-container">
+      <svg width="100" height="300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Embedding the esp-prog image -->
+        <image href="../assets/esp-prog.png" x="0" y="0" width="100" height="300"/>
+
+        <defs>
+          <filter id="glow">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+          </filter>
+          <radialGradient id="ledGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" style="stop-color:#9FFF70; stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#4CAF50; stop-opacity:1" />
+          </radialGradient>
+        </defs>
+
+        <!-- The green LED circle -->
+        <circle cx="60" cy="150" r="10" fill="url(#ledGradient)" filter="url(#glow)" :class="{ active: isMonitoring }" />
+      </svg>
+    </div>
+
+
+    <div class="log-container">
+      <h2>Monitoring Port {{ port }}</h2>
+      <pre class="console">{{ logData }}</pre>
+      <div class="button-container">
+        <button @click="stopMonitoring">Stop</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -54,5 +86,62 @@ const stopMonitoring = () => {
   white-space: -pre-wrap;      /* Opera 4-6 */
   white-space: -o-pre-wrap;    /* Opera 7 */
   word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+
+.monitor {
+  display: flex;
+  align-items: start;
+  gap: 20px;
+}
+
+.animation-container {
+  flex-basis: 25%;
+  padding: 10px;
+}
+
+.log-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1em;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Default state - no LED */
+circle {
+  opacity: 0; /* Initially, LED is not visible */
+}
+
+/* When Monitoring is active, the LED is visible and blinking */
+circle.active {
+  opacity: 1;
+  animation: blink 1s infinite;
+}
+
+/* Default state - no blink */
+#green-led {
+  animation: none;
+}
+
+/* Running state - blink */
+.monitor.active #green-led {
+  animation: blink 1s infinite;
+}
+
+
+/* Running state - blink */
+circle.active.blinking {
+  animation: blink 1s infinite;
 }
 </style>
