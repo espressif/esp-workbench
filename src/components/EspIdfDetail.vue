@@ -76,27 +76,20 @@ function abortBuild() {
         <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
         <div v-if="isInstalling" class="led"></div>
       </div>
+      <div class="console-container">
+        <LogConsole />
+        <div class="button-container">
+          <button @click="installEspIdf()" :disabled="isInstalling">Install ESP-IDF</button>
+          <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>
+        </div>
+      </div>
     </div>
-
-    <LogConsole />
-
-    <div class="button-container">
-      <button @click="installEspIdf()" :disabled="isInstalling">Install ESP-IDF</button>
-      <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>
-    </div>
-
   </div>
 
 </template>
 
 
 <style scoped>
-.button-container {
-  justify-content: space-between;
-  padding-top: 1em;
-  padding-bottom: 1em;
-  padding-left: 30em;
-}
 
 button:disabled {
   background-color: #e0e0e0;
@@ -143,11 +136,21 @@ button:disabled {
   100% { background: red; box-shadow: 0 0 5px 5px red; }
 }
 
+
+.build-status {
+  flex-basis: 75%;
+  background-color: #ccc;
+  padding: 1em;
+  margin-top: 2.5em;
+  overflow: hidden;
+  height: 25vh;
+  white-space: pre-line;
+}
+
 .progress-container {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
-  align-items: start; /* adjust as per requirement */
+  align-items: start;
   padding-right: 5em;
 }
 
@@ -159,14 +162,18 @@ button:disabled {
   position: relative;
 }
 
-.build-status {
-  flex-basis: 75%;
-  background-color: #ccc;
-  padding: 1em;
-  margin-top: 2.5em;
-  overflow: hidden;
-  height: 25vh;
-  white-space: pre-line;
+.console-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* align buttons to the right */
+  padding-top: 1em;
+  padding-bottom: 1em;
 }
 
 </style>

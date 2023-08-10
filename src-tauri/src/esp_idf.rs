@@ -71,7 +71,7 @@ pub async fn download_esp_idf(window: Window,
         let is_file_corrupted = {
             match check_zip(&dest_path) {
                 Ok(()) => {
-                    info!("ESP-IDF already downloaded and the file is not corrupted");
+                    info!("ESP-IDF already downloaded.");
                     return Ok(());
                 },
                 Err(err) => {

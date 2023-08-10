@@ -118,14 +118,18 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
       <p>{{ supportedChips }}</p>
     </div>
 
-    <div class="button-container">
-      <!-- Installation Button -->
-      <button :disabled="isInstalling" @click="installRustSupport()">Install</button>
-      <button :disabled="!isInstalling" @click="abortBuild()">Cancel</button>
+    <div class="progress-container">
+      <div class="animation-container">
+        <img class="rust-wheel-image" :class="{ rotating: isInstalling }" src="../assets/esp-rs.png" alt="Installation in progress..." />
+      </div>
+      <div class="console-container">
+        <LogConsole />
+        <div class="button-container">
+          <button @click="installRustSupport()" :disabled="isInstalling">Install Rust</button>
+          <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>
+        </div>
+      </div>
     </div>
-
-    <LogConsole />
-
   </div>
 </template>
 
@@ -145,5 +149,57 @@ button:disabled {
   color: #888888;
   cursor: not-allowed;
   border: 1px solid #cccccc;
+}
+
+.rust-detail-container {
+  /* styles similar to packager-container */
+  padding-top: 2em;
+  padding-left: 10%;
+  text-align: left;
+}
+
+.progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  padding-right: 5em;
+}
+
+.animation-container {
+  flex-basis: 5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.console-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* align buttons to the right */
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+.rust-wheel-image {
+  width: 100px; /* Setting width to 100px */
+  height: 100px; /* Setting height to 100px */
+  padding: 1em;
+}
+
+/* Add rotation animation only when `rotating` class is present */
+.rust-wheel-image.rotating {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
