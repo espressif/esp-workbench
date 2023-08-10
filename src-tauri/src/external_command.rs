@@ -6,7 +6,7 @@ use tauri::Window;
 use crate::app_state::{AppState, BuilderState};
 use crate::console;
 
-use console::emit_rust_console;
+use log::info;
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
   let state_mutex = app.state::<Mutex<AppState>>();
@@ -30,7 +30,7 @@ pub async fn run_external_command_with_progress(
     let cmd_name_owned = cmd_name.to_string();
     let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
 
-    emit_rust_console(&window.clone(), format!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" ")));
+    info!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" "));
 
     let mut child = Command::new(&cmd_name_owned)
         .args(&cmd_args_owned)
@@ -42,14 +42,11 @@ pub async fn run_external_command_with_progress(
     let stdout = child.stdout.take().unwrap();
     let stderr = child.stderr.take().unwrap();
 
-    let window_clone_std = window.clone();
-    let window_clone_err = window.clone();
-
     let stdout_task = tokio::spawn(async move {
         let reader = BufReader::new(stdout);
         let mut lines = reader.lines();
         while let Some(line) = lines.next_line().await.expect("Failed to read line from stdout") {
-            emit_rust_console(&window_clone_std, line);
+            info!("{}", line);
         }
     });
 
@@ -57,7 +54,7 @@ pub async fn run_external_command_with_progress(
         let reader = BufReader::new(stderr);
         let mut lines = reader.lines();
         while let Some(line) = lines.next_line().await.expect("Failed to read line from stderr") {
-            emit_rust_console(&window_clone_err, line);
+            info!("{}", line);
         }
     });
 
@@ -70,13 +67,13 @@ pub async fn run_external_command_with_progress(
         _ = stderr_task => {},
         status = child_task => {
             if let Err(err) = status {
-                emit_rust_console(&window, format!("Child process exited with {:?}", err));
+                info!("Child process exited with {:?}", err);
                 return Err(());
             }
         }
     }
 
-    emit_rust_console(&window, "Done".to_string());
+    info!("Done");
     Ok("Child process completed successfully".to_string())
 }
 

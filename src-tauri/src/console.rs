@@ -1,21 +1,12 @@
 
 use tauri::Window;
 use tauri::Manager;
+use log::{Log, Record, Level, Metadata, SetLoggerError};
 
 #[derive(Clone, serde::Serialize)]
 struct ConsoleEvent {
     message: String,
 }
-
-pub fn emit_rust_console(window: &Window, message: String) {
-  let event = ConsoleEvent {
-      message: message,
-  };
-  window.emit("rust-console", event).unwrap();
-}
-
-
-use log::{Log, Record, Level, Metadata, SetLoggerError};
 
 pub struct TauriLogger {
     window: Window,

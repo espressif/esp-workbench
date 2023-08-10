@@ -7,6 +7,12 @@ use external_command::run_external_command_with_progress;
 
 use log::info;
 
+use tokio::fs;
+use tokio::io::AsyncWriteExt;
+
+use crate::external_command;
+use crate::external_command::set_exec_permission;
+
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 #[cfg(windows)]
@@ -160,15 +166,6 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
     info!("Rustup installed or already present");
     Ok("Rustup installed or already present".into())
 }
-
-
-
-
-use tokio::fs;
-use tokio::io::AsyncWriteExt;
-
-use crate::{external_command, console};
-use crate::external_command::set_exec_permission;
 
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     info!("Installing espup...");
