@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick, onBeforeUpdate, onUpdated } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -14,6 +14,7 @@ let selectedVariant = ref("x86_64-pc-windows-msvc");
 let installMsvc = ref(true);
 let installMingw = ref(false);
 let logs = ref("");
+const logOutputRef = ref<HTMLDivElement | null>(null);
 const ansi_up = new AnsiUp();
 
 type ConsoleEvent = {
@@ -47,17 +48,39 @@ const installRustSupport = () => {
     });
 };
 
+onBeforeUpdate(() => {
+  // Capture current scroll position and height before the update.
+  // If the current scroll position is already at the bottom, we'll scroll after the update.
+  const shouldScroll = logOutputRef.value
+    && logOutputRef.value.scrollTop + logOutputRef.value.clientHeight >= logOutputRef.value.scrollHeight;
+
+  onUpdated(() => {
+    // After the DOM is updated, scroll to the bottom if it was previously at the bottom
+    if (shouldScroll && logOutputRef.value) {
+      logOutputRef.value.scrollTop = logOutputRef.value.scrollHeight;
+    }
+  });
+});
+
 onMounted(async () => {
   appWindow.listen("rust-console", event => {
     const payload = event.payload as ConsoleEvent;
     console.log(payload.message);
     const htmlMessage = ansi_up.ansi_to_html(payload.message);
     logs.value += htmlMessage + "<br>";
+
+    // Ensure the log scrolls to the bottom when a new message is received
+    nextTick(() => {
+      if (logOutputRef.value) {
+        logOutputRef.value.scrollTop = logOutputRef.value.scrollHeight;
+      }
+    });
   });
 
   const platform = await invoke('get_platform');
   isWindows.value = platform === 'win32';
 });
+
 
 
 const updateSupportedChips = () => {
@@ -120,7 +143,7 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
     <!-- Display Installation Logs -->
     <div class="log-section">
       <h3>Installation Logs:</h3>
-      <div class="log-output" v-html="logs"></div>
+      <div class="log-output" v-html="logs" ref="logOutputRef"></div>
     </div>
 
   </div>
