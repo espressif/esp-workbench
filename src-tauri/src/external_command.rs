@@ -4,7 +4,6 @@ use std::sync::Mutex;
 use tauri::Manager;
 use tauri::Window;
 use crate::app_state::{AppState, BuilderState};
-use crate::console;
 
 use log::info;
 
@@ -17,8 +16,8 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
   }
 }
 
-use tokio::process::{Command, ChildStdout, ChildStderr};
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::process::Command;
+use tokio::io::AsyncBufReadExt;
 
 pub async fn run_external_command_with_progress(
     window: Window,
@@ -39,42 +38,53 @@ pub async fn run_external_command_with_progress(
         .spawn()
         .expect("Failed to launch command");
 
-    let stdout = child.stdout.take().unwrap();
-    let stderr = child.stderr.take().unwrap();
+    let mut stdout = tokio::io::BufReader::new(child.stdout.take().unwrap());
+    let mut stderr = tokio::io::BufReader::new(child.stderr.take().unwrap());
 
-    let stdout_task = tokio::spawn(async move {
-        let reader = BufReader::new(stdout);
-        let mut lines = reader.lines();
-        while let Some(line) = lines.next_line().await.expect("Failed to read line from stdout") {
-            info!("{}", line);
-        }
-    });
+    let mut stdout_buf = String::new();
+    let mut stderr_buf = String::new();
 
-    let stderr_task = tokio::spawn(async move {
-        let reader = BufReader::new(stderr);
-        let mut lines = reader.lines();
-        while let Some(line) = lines.next_line().await.expect("Failed to read line from stderr") {
-            info!("{}", line);
-        }
-    });
+    let poll_interval = tokio::time::Duration::from_millis(100); // adjust as necessary
 
-    let child_task = tokio::spawn(async move {
-        child.wait().await.expect("Child process encountered an error")
-    });
-
-    tokio::select! {
-        _ = stdout_task => {},
-        _ = stderr_task => {},
-        status = child_task => {
-            if let Err(err) = status {
-                info!("Child process exited with {:?}", err);
-                return Err(());
+    loop {
+        tokio::select! {
+            _ = stdout.read_line(&mut stdout_buf) => {
+                if !stdout_buf.is_empty() {
+                    info!("{}", stdout_buf);
+                    stdout_buf.clear();
+                }
+            },
+            _ = stderr.read_line(&mut stderr_buf) => {
+                if !stderr_buf.is_empty() {
+                    info!("{}", stderr_buf);
+                    stderr_buf.clear();
+                }
+            },
+            status = child.wait() => {
+                match status {
+                    Ok(status) if status.success() => {
+                        info!("Done");
+                        return Ok("Child process completed successfully".to_string());
+                    },
+                    Ok(_) => {
+                        info!("Child process exited with an error");
+                        return Err(());
+                    },
+                    Err(err) => {
+                        info!("Child process encountered an error: {:?}", err);
+                        return Err(());
+                    },
+                }
+            },
+            _ = tokio::time::sleep(poll_interval) => {
+                if is_abort_state(app.clone()) {
+                    info!("Aborting command due to external signal.");
+                    let _ = child.kill();
+                    return Err(());
+                }
             }
         }
     }
-
-    info!("Done");
-    Ok("Child process completed successfully".to_string())
 }
 
 
