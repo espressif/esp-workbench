@@ -13,7 +13,6 @@ const props = defineProps({
   outputArchive: String
 });
 
-const buildStatus = ref("");
 let isInstalling = ref(false);
 let isAborted = ref(false);
 

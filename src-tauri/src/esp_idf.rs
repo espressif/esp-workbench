@@ -2,10 +2,6 @@
 use log::info;
 
 use tauri::{Window, Manager};
-
-use crate::app_state::{AppState, BuilderState};
-use std::sync::Mutex;
-
 use std::path::Path;
 use crate::download::download_file;
 
@@ -17,16 +13,6 @@ struct Payload {
 }
 
 const PROGRESS_EVENT: &str = "progress";
-
-
-fn is_abort_state(app: tauri::AppHandle) -> bool {
-    let state_mutex = app.state::<Mutex<AppState>>();
-    let mut state = state_mutex.lock().unwrap();
-    match state.builder {
-        BuilderState::Abort => true,
-        _ => false
-    }
-}
 
 #[cfg(unix)]
 const INSTALL_SCRIPT_NAME: &str = "install.sh";

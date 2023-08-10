@@ -1,7 +1,6 @@
 use std::process::Command;
 
-use tauri::{AppHandle, Manager};
-use tauri::Window;
+use tauri::{AppHandle, Window};
 
 use external_command::run_external_command_with_progress;
 

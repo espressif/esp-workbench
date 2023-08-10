@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick, onBeforeUpdate, onUpdated } from 'vue';
+import { ref, onMounted } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
-import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
 import LogConsole from './LogConsole.vue';
 
@@ -195,7 +194,7 @@ button:disabled {
 
 /* Add rotation animation only when `rotating` class is present */
 .rust-wheel-image.rotating {
-  animation: spin 2s linear infinite;
+  animation: spin 3s linear infinite;
 }
 
 @keyframes spin {

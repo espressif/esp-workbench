@@ -1,7 +1,7 @@
 
 use tauri::Window;
 use tauri::Manager;
-use log::{Log, Record, Level, Metadata, SetLoggerError};
+use log::{ Log, Record, Metadata };
 
 #[derive(Clone, serde::Serialize)]
 struct ConsoleEvent {
