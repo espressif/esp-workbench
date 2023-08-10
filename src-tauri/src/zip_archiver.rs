@@ -33,7 +33,7 @@ pub fn zip_dir(
 {
 
     let method = zip::CompressionMethod::Deflated;
-    println!("Zipping {:?} to {:?} using method {:?} ...", src_dir, dst_file, method);
+    info!("Zipping {:?} to {:?} using method {:?} ...", src_dir, dst_file, method);
     let archive_file_path = Path::new(dst_file);
     let archive_file = File::create(archive_file_path).unwrap();
 
@@ -143,7 +143,7 @@ pub fn unzip(
         {
             let comment = file.comment();
             if !comment.is_empty() {
-                println!("File {} comment: {}", i, comment);
+                info!("File {} comment: {}", i, comment);
             }
         }
 

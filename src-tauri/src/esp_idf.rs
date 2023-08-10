@@ -41,7 +41,7 @@ pub fn run_install_script(
     esp_idf_path: String) -> Result<String, ()>
 {
     let file_path = Path::new(&esp_idf_path).join(INSTALL_SCRIPT_NAME);
-    println!("Running install script: {:?}", file_path);
+    info!("Running install script: {:?}", file_path);
 
     #[cfg(unix)]
     {
@@ -63,7 +63,7 @@ pub async fn download_esp_idf(window: Window,
     version: String,
     dest_path: String) -> Result<(), ()> {
     let url = format!("https://github.com/espressif/esp-idf/releases/download/{}/esp-idf-{}.zip", version, version);
-    println!("Downloading ESP-IDF from {}", url);
+    info!("Downloading ESP-IDF from {}", url);
     let dest_path = Path::new(&dest_path);
 
     // If the file exists, check if it is not corrupted
@@ -71,11 +71,11 @@ pub async fn download_esp_idf(window: Window,
         let is_file_corrupted = {
             match check_zip(&dest_path) {
                 Ok(()) => {
-                    println!("ESP-IDF already downloaded and the file is not corrupted");
+                    info!("ESP-IDF already downloaded and the file is not corrupted");
                     return Ok(());
                 },
                 Err(err) => {
-                    eprintln!("The file is corrupted: {}", err);
+                    info!("The file is corrupted: {}", err);
                     true
                 }
             }
@@ -93,11 +93,11 @@ pub async fn download_esp_idf(window: Window,
 
     match download_file(window, app, &url, dest_path).await {
         Ok(_) => {
-            println!("ESP-IDF downloaded successfully");
+            info!("ESP-IDF downloaded successfully");
             Ok(())
         }
         Err(err) => {
-            eprintln!("Failed to download ESP-IDF: {}", err);
+            info!("Failed to download ESP-IDF: {}", err);
             Err(())
         }
     }

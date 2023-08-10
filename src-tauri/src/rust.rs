@@ -30,12 +30,12 @@ pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) ->
   let output = cmd.output().ok()?;
 
   if !output.status.success() {
-      println!("command failed: {:?}", output);
+      info!("command failed: {:?}", output);
       return None;
   }
 
   let stdout = String::from_utf8_lossy(&output.stdout);
-  println!("stdout: {:?}", stdout);
+  info!("stdout: {:?}", stdout);
 
   // Split by newline and take the first line.
   let binding = stdout.split('\n').collect::<Vec<&str>>();
@@ -62,12 +62,12 @@ pub fn get_tool_version_xtensa(command: &str, flags: &[&str], keyword: Option<&s
   let output = cmd.output().ok()?;
 
   if !output.status.success() {
-      println!("command failed: {:?}", output);
+      info!("command failed: {:?}", output);
       return None;
   }
 
   let stdout = String::from_utf8_lossy(&output.stdout);
-  println!("stdout: {:?}", stdout);
+  info!("stdout: {:?}", stdout);
 
   // Split by newline and take the first line.
   let binding = stdout.split('\n').collect::<Vec<&str>>();
@@ -99,7 +99,7 @@ pub fn check_rust_support() -> Result<RustSupportResponse, String> {
   let xtensa_version = get_tool_version_xtensa("rustc", &["+esp", "--version"], Some("rustc"));
 
 
-    println!("riscv: {:?}", riscv_version);
+    info!("riscv: {:?}", riscv_version);
     Ok(RustSupportResponse {
       xtensa: xtensa_version,
       riscv: riscv_version,
