@@ -16,6 +16,8 @@ let installMingw = ref(false);
 let logs = ref("");
 const logOutputRef = ref<HTMLDivElement | null>(null);
 const ansi_up = new AnsiUp();
+let isInstalling = ref(false);
+let isAborted = ref(false);
 
 type ConsoleEvent = {
   message: string,
@@ -27,7 +29,22 @@ interface RustInstallOptions {
     installMingw: boolean;
 }
 
+function abortBuild() {
+  invoke("abort_build")
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  isInstalling.value = false;
+  isAborted.value = true;
+}
+
 const installRustSupport = () => {
+
+  isInstalling.value = true;
+
   let rustInstallOptions = {
     selectedVariant: selectedVariant.value,
     installMsvc: selectedVariant.value === "x86_64-pc-windows-msvc" && installMsvc.value,
@@ -40,12 +57,18 @@ const installRustSupport = () => {
     install_msvc: rustInstallOptions.installMsvc,
     install_mingw: rustInstallOptions.installMingw,
   }})
-    .then(() => {
-      console.log("Rust Support Installed");
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  .then(() => {
+    console.log("Rust Support Installed");
+    isInstalling.value = false;
+    isAborted.value = false;
+  })
+  .catch((error) => {
+    console.error(error);
+    isInstalling.value = false;
+    isAborted.value = false;
+  });
+
+
 };
 
 onBeforeUpdate(() => {
@@ -91,10 +114,6 @@ const updateSupportedChips = () => {
     : "ESP32-C2, ESP32-C3, ESP32-C6, ESP32-H2";
 }
 
-const startInstallation = () => {
-  installRustSupport();
-}
-
 let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
 </script>
 
@@ -137,8 +156,11 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
       <p>{{ supportedChips }}</p>
     </div>
 
-    <!-- Installation Button -->
-    <button @click="startInstallation">Install</button>
+    <div class="button-container">
+      <!-- Installation Button -->
+      <button v-if="!isInstalling" @click="installRustSupport()">Install</button>
+      <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
+    </div>
 
     <!-- Display Installation Logs -->
     <div class="log-section">
@@ -152,6 +174,11 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
 
 
 <style scoped>
+.button-container {
+  /* justify-content: space-between; */
+
+}
+
 .rust-detail {
   display: flex;
   flex-direction: column;
