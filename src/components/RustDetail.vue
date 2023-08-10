@@ -3,9 +3,7 @@ import { ref, onMounted, nextTick, onBeforeUpdate, onUpdated } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
-import {
-        default as AnsiUp
-    } from 'ansi_up';
+import LogConsole from './LogConsole.vue';
 
 let isWindows = ref(false);
 
@@ -13,15 +11,9 @@ let selectedToolchain = ref("xtensa");
 let selectedVariant = ref("x86_64-pc-windows-msvc");
 let installMsvc = ref(true);
 let installMingw = ref(false);
-let logs = ref("");
-const logOutputRef = ref<HTMLDivElement | null>(null);
-const ansi_up = new AnsiUp();
+
 let isInstalling = ref(false);
 let isAborted = ref(false);
-
-type ConsoleEvent = {
-  message: string,
-}
 
 interface RustInstallOptions {
     selectedVariant?: string;
@@ -71,40 +63,10 @@ const installRustSupport = () => {
 
 };
 
-onBeforeUpdate(() => {
-  // Capture current scroll position and height before the update.
-  // If the current scroll position is already at the bottom, we'll scroll after the update.
-  const shouldScroll = logOutputRef.value
-    && logOutputRef.value.scrollTop + logOutputRef.value.clientHeight >= logOutputRef.value.scrollHeight;
-
-  onUpdated(() => {
-    // After the DOM is updated, scroll to the bottom if it was previously at the bottom
-    if (shouldScroll && logOutputRef.value) {
-      logOutputRef.value.scrollTop = logOutputRef.value.scrollHeight;
-    }
-  });
-});
-
 onMounted(async () => {
-  appWindow.listen("rust-console", event => {
-    const payload = event.payload as ConsoleEvent;
-    console.log(payload.message);
-    const htmlMessage = ansi_up.ansi_to_html(payload.message);
-    logs.value += htmlMessage + "<br>";
-
-    // Ensure the log scrolls to the bottom when a new message is received
-    nextTick(() => {
-      if (logOutputRef.value) {
-        logOutputRef.value.scrollTop = logOutputRef.value.scrollHeight;
-      }
-    });
-  });
-
   const platform = await invoke('get_platform');
   isWindows.value = platform === 'win32';
 });
-
-
 
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
@@ -162,11 +124,7 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
       <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
     </div>
 
-    <!-- Display Installation Logs -->
-    <div class="log-section">
-      <h3>Installation Logs:</h3>
-      <div class="log-output" v-html="logs" ref="logOutputRef"></div>
-    </div>
+    <LogConsole />
 
   </div>
 </template>
@@ -174,28 +132,11 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
 
 
 <style scoped>
-.button-container {
-  /* justify-content: space-between; */
-
-}
-
 .rust-detail {
   display: flex;
   flex-direction: column;
   gap: 20px;
   /* max-width: 500px; */
   margin: auto;
-}
-
-.log-output {
-  width: 100%;
-  height: 300px;
-  overflow-y: scroll;
-  border: 1px solid #ccc;
-  padding: 8px;
-  white-space: pre-wrap;  /* Preserves whitespace & line breaks */
-  font-family: monospace;
-  background-color: #f8f8f8;
-  text-align: left;
 }
 </style>

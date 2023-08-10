@@ -22,54 +22,6 @@ type Payload = {
 
 appWindow.listen('progress', ({payload}) => buildStatus.value = (payload as Payload).pct);
 
-// function compressPackage() {
-//   let espIdf = props.espIdfPath;
-//   let output = props.outputArchive;
-
-//   invoke("compress", {window: appWindow, sourcePath: espIdf, targetPath: output})
-//     .then((message) => {
-//       console.log(message);
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//     });
-// }
-
-// function deployPackage() {
-//   let espIdf = props.espIdfPath;
-//   let zipArchive = props.outputArchive;
-
-//   invoke("decompress", {window: appWindow, sourcePath: zipArchive, targetPath: espIdf})
-//     .then((message) => {
-//       console.log(message);
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//     });
-// }
-
-// function runInstallScript() {
-//   invoke("run_esp_idf_install_script", {window: appWindow, targetPath: props.espIdfPath})
-//     .then((message) => {
-//       console.log(message);
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//     });
-// }
-
-// function downloadEspIdf() {
-//   let output = props.outputArchive;
-//   let version = props.espIdfVersion;
-//   invoke("download_esp_idf", {window: appWindow, version: version, targetPath: output})
-//     .then((message) => {
-//       console.log(message);
-//     })
-//     .catch((error) => {
-//       console.error(error);
-//     });
-// }
-
 async function installEspIdf() {
   try {
     let output = props.outputArchive;
@@ -112,10 +64,6 @@ function abortBuild() {
 </script>
 
 <template>
-  <!-- <PathSelector title="ESP-IDF path"
-    :path="props.espIdfPath"
-    @update:path="(value: string) => $emit('update:espIdfPath', value)"
-  /> -->
   <div class="packager-container">
     <VersionSelector
       :selectedVersion="props.espIdfVersion"
@@ -127,34 +75,18 @@ function abortBuild() {
       @update:path="(value: string) => $emit('update:espToolsPath', value)"
     />
     <div>ESP-IDF Path: {{ props.espIdfPath }}</div>
-    <!-- <div>ESP-IDF ZIP: {{ props.outputArchive }}</div> -->
-    <!-- <PathSelector title="Output archive"
-      :path="props.outputArchive"
-      @update:path="(value: string) => $emit('update:outputArchive', value)"
-    /> -->
 
     <div class="progress-container">
-  <div class="animation-container">
-    <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
-    <div v-if="isInstalling" class="led"></div>
-  </div>
-  <div class="build-status">{{ buildStatus }}</div>
-</div>
-
-    <!-- <div class="progress-container">
       <div class="animation-container">
         <img class="board-image" src="../assets/esp32-c3-rust-1.svg" alt="Installation in progress..." />
         <div v-if="isInstalling" class="led"></div>
       </div>
       <div class="build-status">{{ buildStatus }}</div>
-    </div> -->
+    </div>
+
 
     <div class="button-container">
-      <!-- <button @click="compressPackage()">Build package</button> -->
       <button v-if="!isInstalling" @click="installEspIdf()">Install ESP-IDF</button>
-      <!-- <button @click="downloadEspIdf()">Download ESP-IDF package</button> -->
-      <!-- <button @click="deployPackage()">Deploy package</button> -->
-      <!-- <button @click="runInstallScript()">Run ESP-IDF install script</button> -->
       <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
     </div>
   </div>
