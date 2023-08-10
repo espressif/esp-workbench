@@ -3,8 +3,9 @@ use std::process::Command;
 use tauri::{AppHandle, Manager};
 use tauri::Window;
 
+use external_command::run_external_command_with_progress;
 
-use external_command::{run_external_command_with_progress, emit_rust_console};
+use log::info;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -129,14 +130,14 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
     match Command::new("rustup").arg("--version").output() {
         Ok(output) => {
             if output.status.success() {
-                emit_rust_console(&window.clone(), "Rustup already installed".into());
+                info!("Rustup already installed");
                 return Ok("Rustup already installed".into());
             }
         },
         Err(_) => {}
     }
 
-    emit_rust_console(&window, "Installing rustup...".into());
+    info!("Installing rustup...");
 
     #[cfg(target_os = "windows")]
     {
@@ -156,7 +157,7 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
         run_external_command_with_progress(window.clone(), app, "./rustup-init.sh", &args, "PROGRESS_EVENT").await;
     }
 
-    emit_rust_console(&window, "Rustup installed or already present".into());
+    info!("Rustup installed or already present");
     Ok("Rustup installed or already present".into())
 }
 
@@ -166,11 +167,11 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
 
-use crate::external_command;
+use crate::{external_command, console};
 use crate::external_command::set_exec_permission;
 
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
-    emit_rust_console(&window, "Installing espup...".into());
+    info!("Installing espup...");
 
     let url: &'static str;
     #[cfg(target_os = "linux")]
@@ -220,14 +221,14 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
     #[cfg(unix)]
     set_exec_permission(&output_path).map_err(|e| format!("Failed to set execute permissions: {}", e))?;
 
-    emit_rust_console(&window, "espup downloaded successfully!".into());
+    info!("espup downloaded successfully!");
 
     Ok("espup installed successfully!".into())
 }
 
 
 async fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
-    emit_rust_console(&window, "Installing Rust toolchain via espup... (this might take a while)".into());
+    info!("Installing Rust toolchain via espup... (this might take a while)");
 
     let espup_path = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup").to_str().unwrap().to_string();
 
@@ -249,11 +250,11 @@ async fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant
 
     match result {
         Ok(_) => {
-            emit_rust_console(&window, "Rust toolchain installed successfully via espup.".into());
+            info!("Rust toolchain installed successfully via espup.");
             Ok("Rust toolchain installed successfully!".into())
         }
         Err(_) => {
-            emit_rust_console(&window, "Failed to install Rust toolchain via espup.".into());
+            info!("Failed to install Rust toolchain via espup.");
             Err("Failed to install Rust toolchain via espup.".into())
         }
     }
@@ -262,7 +263,7 @@ async fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant
 
 #[cfg(target_os = "windows")]
 async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Result<String, String> {
-    emit_rust_console(&window.clone(), "Downloading Visual Studio Build Tools and Windows SDK...".into());
+    info!("Downloading Visual Studio Build Tools and Windows SDK...");
 
     // Download vs_buildtools.exe
     let url = "https://aka.ms/vs/17/release/vs_buildtools.exe";
@@ -274,7 +275,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     let tmp_dir = env::temp_dir();
     let file_path = tmp_dir.join("vs_buildtools.exe");
     fs::write(&file_path, &bytes).await;
-    emit_rust_console(&window, format!("Starting installer at {:?}", &file_path.display()));
+    info!(format!("Starting installer at {:?}", &file_path.display()));
 
     // Run the installer with the necessary components
     let args = [
@@ -285,7 +286,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     ];
     run_external_command_with_progress(window.clone(), app, &file_path.to_string_lossy(), &args, "Installing Visual Studio Build Tools and Windows SDK...").await;
 
-    emit_rust_console(&window, "Visual Studio Build Tools and Windows SDK installed successfully!".into());
+    info!("Visual Studio Build Tools and Windows SDK installed successfully!");
 
     Ok("Visual Studio Build Tools and Windows SDK installed successfully!".into())
 }

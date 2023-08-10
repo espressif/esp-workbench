@@ -4,11 +4,9 @@ use std::sync::Mutex;
 use tauri::Manager;
 use tauri::Window;
 use crate::app_state::{AppState, BuilderState};
+use crate::console;
 
-#[derive(Clone, serde::Serialize)]
-struct ConsoleEvent {
-    message: String,
-}
+use console::emit_rust_console;
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
   let state_mutex = app.state::<Mutex<AppState>>();
@@ -17,13 +15,6 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
       BuilderState::Abort => true,
       _ => false
   }
-}
-
-pub fn emit_rust_console(window: &Window, message: String) {
-  let event = ConsoleEvent {
-      message: message,
-  };
-  window.emit("rust-console", event).unwrap();
 }
 
 use tokio::process::{Command, ChildStdout, ChildStderr};

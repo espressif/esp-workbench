@@ -10,6 +10,8 @@ use app_state::{AppState, BuilderState};
 
 mod download;
 
+mod console;
+use console::setup_logging;
 mod esp_idf;
 use esp_idf::run_install_script;
 mod external_command;
@@ -308,14 +310,20 @@ async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
-        .invoke_handler(tauri::generate_handler![compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage,
+        .invoke_handler(tauri::generate_handler![
+            compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage,
             get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script,
             start_flash, stop_flash,
             start_monitor, stop_monitor,
             check_rust_support,
             install_rust_support,
             get_platform
-            ])
+        ])
+        .setup(|app| {
+            // Initialize the logging system
+            setup_logging(&app);
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
