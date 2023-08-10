@@ -10,7 +10,9 @@ use zip::result::ZipError;
 use zip::write::FileOptions;
 
 use tauri::{Window, Manager};
-use std::sync::{Mutex};
+use std::sync::Mutex;
+
+use log::info;
 
 use crate::app_state::{AppState, BuilderState};
 
@@ -31,7 +33,7 @@ pub fn zip_dir(
 {
 
     let method = zip::CompressionMethod::Deflated;
-    println!("Zipping {:?} to {:?} using method {:?} ...", src_dir, dst_file, method);
+    info!("Zipping {:?} to {:?} using method {:?} ...", src_dir, dst_file, method);
     let archive_file_path = Path::new(dst_file);
     let archive_file = File::create(archive_file_path).unwrap();
 
@@ -70,10 +72,7 @@ where
     let mut buffer = Vec::new();
     for entry in it {
         if is_abort_state(app.clone()) {
-            let payload = Payload {
-                pct: "Aborted".to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
+            info!("Aborted");
             return Ok(());
         }
         let path = entry.path();
@@ -82,12 +81,7 @@ where
         // Write file or directory explicitly
         // Some unzip tools unzip files with directory paths correctly, some do not!
         if path.is_file() {
-            let message = format!("adding file {path:?} as {name:?} ...");
-            let payload = Payload {
-                pct: message.to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
-            println!("{message:?}");
+            info!("adding file {path:?} as {name:?} ...");
             #[allow(deprecated)]
             zip.start_file_from_path(name, options)?;
             let mut f = File::open(path)?;
@@ -98,21 +92,13 @@ where
         } else if !name.as_os_str().is_empty() {
             // Only if not root! Avoids path spec / warning
             // and mapname conversion failed error on unzip
-            let message = format!("adding dir {path:?} as {name:?} ...");
-            let payload = Payload {
-                pct: message.to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
-            println!("{message:?}");
+            info!("adding dir {path:?} as {name:?} ...");
             #[allow(deprecated)]
             zip.add_directory_from_path(name, options)?;
         }
     }
     zip.finish()?;
-    let payload = Payload {
-        pct: "Complete".to_string(),
-    };
-    window.emit(PROGRESS_EVENT, payload).unwrap();
+    info!("Complete");
     Result::Ok(())
 }
 
@@ -130,10 +116,7 @@ pub fn unzip(
 
     for i in 0..archive.len() {
         if is_abort_state(app.clone()) {
-            let payload = Payload {
-                pct: "Aborted".to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
+            info!("Aborted");
             return Ok(());
         }
 
@@ -160,23 +143,15 @@ pub fn unzip(
         {
             let comment = file.comment();
             if !comment.is_empty() {
-                println!("File {} comment: {}", i, comment);
+                info!("File {} comment: {}", i, comment);
             }
         }
 
         if (&*file.name()).ends_with('/') {
-            println!("* extracted: \"{}\"", outpath.display());
+            // println!("* extracted: \"{}\"", outpath.display());
             fs::create_dir_all(&outpath).unwrap();
         } else {
-            let message = format!("extracted {}", outpath.display());
-            let payload = Payload {
-                pct: message.to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
-            println!(
-                "{}",
-                message
-            );
+            // info!("extracted {}", outpath.display());
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
                     fs::create_dir_all(&p).unwrap();
@@ -186,9 +161,6 @@ pub fn unzip(
             io::copy(&mut file, &mut outfile).unwrap();
         }
     }
-    let payload = Payload {
-        pct: "Complete".to_string(),
-    };
-    window.emit(PROGRESS_EVENT, payload).unwrap();
+    info!("Complete");
     Ok(())
 }

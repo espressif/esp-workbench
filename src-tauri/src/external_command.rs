@@ -1,16 +1,11 @@
 use std::process::Stdio;
-use std::thread;
-use std::path::Path;
-use std::sync::{Mutex};
+use std::sync::Mutex;
 
 use tauri::Manager;
 use tauri::Window;
 use crate::app_state::{AppState, BuilderState};
 
-#[derive(Clone, serde::Serialize)]
-struct ConsoleEvent {
-    message: String,
-}
+use log::info;
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
   let state_mutex = app.state::<Mutex<AppState>>();
@@ -21,15 +16,8 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
   }
 }
 
-pub fn emit_rust_console(window: &Window, message: String) {
-  let event = ConsoleEvent {
-      message: message,
-  };
-  window.emit("rust-console", event).unwrap();
-}
-
-use tokio::process::{Command, ChildStdout, ChildStderr};
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::process::Command;
+use tokio::io::AsyncBufReadExt;
 
 pub async fn run_external_command_with_progress(
     window: Window,
@@ -41,7 +29,7 @@ pub async fn run_external_command_with_progress(
     let cmd_name_owned = cmd_name.to_string();
     let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
 
-    emit_rust_console(&window.clone(), format!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" ")));
+    info!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" "));
 
     let mut child = Command::new(&cmd_name_owned)
         .args(&cmd_args_owned)
@@ -50,45 +38,53 @@ pub async fn run_external_command_with_progress(
         .spawn()
         .expect("Failed to launch command");
 
-    let stdout = child.stdout.take().unwrap();
-    let stderr = child.stderr.take().unwrap();
+    let mut stdout = tokio::io::BufReader::new(child.stdout.take().unwrap());
+    let mut stderr = tokio::io::BufReader::new(child.stderr.take().unwrap());
 
-    let window_clone_std = window.clone();
-    let window_clone_err = window.clone();
+    let mut stdout_buf = String::new();
+    let mut stderr_buf = String::new();
 
-    let stdout_task = tokio::spawn(async move {
-        let reader = BufReader::new(stdout);
-        let mut lines = reader.lines();
-        while let Some(line) = lines.next_line().await.expect("Failed to read line from stdout") {
-            emit_rust_console(&window_clone_std, line);
-        }
-    });
+    let poll_interval = tokio::time::Duration::from_millis(100); // adjust as necessary
 
-    let stderr_task = tokio::spawn(async move {
-        let reader = BufReader::new(stderr);
-        let mut lines = reader.lines();
-        while let Some(line) = lines.next_line().await.expect("Failed to read line from stderr") {
-            emit_rust_console(&window_clone_err, line);
-        }
-    });
-
-    let child_task = tokio::spawn(async move {
-        child.wait().await.expect("Child process encountered an error")
-    });
-
-    tokio::select! {
-        _ = stdout_task => {},
-        _ = stderr_task => {},
-        status = child_task => {
-            if let Err(err) = status {
-                emit_rust_console(&window, format!("Child process exited with {:?}", err));
-                return Err(());
+    loop {
+        tokio::select! {
+            _ = stdout.read_line(&mut stdout_buf) => {
+                if !stdout_buf.is_empty() {
+                    info!("{}", stdout_buf);
+                    stdout_buf.clear();
+                }
+            },
+            _ = stderr.read_line(&mut stderr_buf) => {
+                if !stderr_buf.is_empty() {
+                    info!("{}", stderr_buf);
+                    stderr_buf.clear();
+                }
+            },
+            status = child.wait() => {
+                match status {
+                    Ok(status) if status.success() => {
+                        info!("Done");
+                        return Ok("Child process completed successfully".to_string());
+                    },
+                    Ok(_) => {
+                        info!("Child process exited with an error");
+                        return Err(());
+                    },
+                    Err(err) => {
+                        info!("Child process encountered an error: {:?}", err);
+                        return Err(());
+                    },
+                }
+            },
+            _ = tokio::time::sleep(poll_interval) => {
+                if is_abort_state(app.clone()) {
+                    info!("Aborting command due to external signal.");
+                    let _ = child.kill();
+                    return Err(());
+                }
             }
         }
     }
-
-    emit_rust_console(&window, "Done".to_string());
-    Ok("Child process completed successfully".to_string())
 }
 
 

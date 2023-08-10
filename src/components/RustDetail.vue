@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 // import { platform } from '@tauri-apps/api/os';
-import { appWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/tauri';
-import {
-        default as AnsiUp
-    } from 'ansi_up';
+import LogConsole from './LogConsole.vue';
 
 let isWindows = ref(false);
 
@@ -13,12 +10,9 @@ let selectedToolchain = ref("xtensa");
 let selectedVariant = ref("x86_64-pc-windows-msvc");
 let installMsvc = ref(true);
 let installMingw = ref(false);
-let logs = ref("");
-const ansi_up = new AnsiUp();
 
-type ConsoleEvent = {
-  message: string,
-}
+let isInstalling = ref(false);
+let isAborted = ref(false);
 
 interface RustInstallOptions {
     selectedVariant?: string;
@@ -26,7 +20,22 @@ interface RustInstallOptions {
     installMingw: boolean;
 }
 
+function abortBuild() {
+  invoke("abort_build")
+    .then((message) => {
+      console.log(message);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  isInstalling.value = false;
+  isAborted.value = true;
+}
+
 const installRustSupport = () => {
+
+  isInstalling.value = true;
+
   let rustInstallOptions = {
     selectedVariant: selectedVariant.value,
     installMsvc: selectedVariant.value === "x86_64-pc-windows-msvc" && installMsvc.value,
@@ -39,26 +48,24 @@ const installRustSupport = () => {
     install_msvc: rustInstallOptions.installMsvc,
     install_mingw: rustInstallOptions.installMingw,
   }})
-    .then(() => {
-      console.log("Rust Support Installed");
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  .then(() => {
+    console.log("Rust Support Installed");
+    isInstalling.value = false;
+    isAborted.value = false;
+  })
+  .catch((error) => {
+    console.error(error);
+    isInstalling.value = false;
+    isAborted.value = false;
+  });
+
+
 };
 
 onMounted(async () => {
-  appWindow.listen("rust-console", event => {
-    const payload = event.payload as ConsoleEvent;
-    console.log(payload.message);
-    const htmlMessage = ansi_up.ansi_to_html(payload.message);
-    logs.value += htmlMessage + "<br>";
-  });
-
   const platform = await invoke('get_platform');
   isWindows.value = platform === 'win32';
 });
-
 
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
@@ -66,10 +73,6 @@ const updateSupportedChips = () => {
   supportedChips.value = (selectedToolchain.value === "xtensa")
     ? "ESP32, ESP32-S2, ESP32-S3"
     : "ESP32-C2, ESP32-C3, ESP32-C6, ESP32-H2";
-}
-
-const startInstallation = () => {
-  installRustSupport();
 }
 
 let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
@@ -114,15 +117,18 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
       <p>{{ supportedChips }}</p>
     </div>
 
-    <!-- Installation Button -->
-    <button @click="startInstallation">Install</button>
-
-    <!-- Display Installation Logs -->
-    <div class="log-section">
-      <h3>Installation Logs:</h3>
-      <div class="log-output" v-html="logs"></div>
+    <div class="progress-container">
+      <div class="animation-container">
+        <img class="rust-wheel-image" :class="{ rotating: isInstalling }" src="../assets/esp-rs.png" alt="Installation in progress..." />
+      </div>
+      <div class="console-container">
+        <LogConsole />
+        <div class="button-container">
+          <button @click="installRustSupport()" :disabled="isInstalling">Install Rust</button>
+          <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>
+        </div>
+      </div>
     </div>
-
   </div>
 </template>
 
@@ -137,15 +143,62 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
   margin: auto;
 }
 
-.log-output {
-  width: 100%;
-  height: 300px;
-  overflow-y: scroll;
-  border: 1px solid #ccc;
-  padding: 8px;
-  white-space: pre-wrap;  /* Preserves whitespace & line breaks */
-  font-family: monospace;
-  background-color: #f8f8f8;
+button:disabled {
+  background-color: #e0e0e0;
+  color: #888888;
+  cursor: not-allowed;
+  border: 1px solid #cccccc;
+}
+
+.rust-detail-container {
+  /* styles similar to packager-container */
+  padding-top: 2em;
+  padding-left: 10%;
   text-align: left;
+}
+
+.progress-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  padding-right: 5em;
+}
+
+.animation-container {
+  flex-basis: 5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.console-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* align buttons to the right */
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+.rust-wheel-image {
+  width: 100px; /* Setting width to 100px */
+  height: 100px; /* Setting height to 100px */
+  padding: 1em;
+}
+
+/* Add rotation animation only when `rotating` class is present */
+.rust-wheel-image.rotating {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

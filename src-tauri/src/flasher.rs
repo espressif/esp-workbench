@@ -5,6 +5,10 @@ use espflash::flasher::ProgressCallbacks;
 use espflash::interface::Interface;
 use tauri::Window;
 use tauri::AppHandle;
+use serialport::SerialPortInfo;
+use serialport::available_ports;
+use std::io;
+
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -56,10 +60,6 @@ impl ProgressCallbacks for FlashProgress {
     }
 }
 
-use serialport::{SerialPortInfo, UsbPortInfo};
-use serialport::available_ports;
-use std::io;
-
 pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
   let ports = available_ports()?;
   for p in ports {
@@ -77,7 +77,7 @@ pub fn emit_error(window: &Window, error: &str) {
   window.emit("error", error_payload).unwrap();
 }
 
-pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
+pub async fn flash_file(window: Window, _: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
 
     // let file_metadata = std::fs::metadata(&file_path);
     // match file_metadata {
@@ -108,7 +108,7 @@ pub async fn flash_file(window: Window, app: AppHandle, port: String, file_path:
         serialport::SerialPortType::UsbPort(info) => Some(info.clone()),
         _ => return Err("Port is not a USB port".to_string() )
     };
-    let mut serial = Interface::new(&serial_port_info, dtr, rts).unwrap();
+    let serial = Interface::new(&serial_port_info, dtr, rts).unwrap();
 
     println!("Connecting to port...");
     let mut flasher = Flasher::connect(serial, port_info.unwrap(), None, false).unwrap();

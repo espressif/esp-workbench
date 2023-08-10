@@ -1,13 +1,12 @@
 use std::path::Path;
-use reqwest::StatusCode;
-use futures::StreamExt;
 use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt; // Add this line
 
 use tauri::{Window, Manager};
 
-use std::sync::{Mutex};
+use std::sync::Mutex;
 use crate::app_state::{AppState, BuilderState};
+use log::info;
 
 const PROGRESS_EVENT: &str = "progress";
 
@@ -46,15 +45,9 @@ pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, des
         dest.write_all(&chunk).await?;
         downloaded += chunk.len() as u64;
         let percentage = downloaded as f64 / total_size as f64 * 100.0;
-        let payload = Payload {
-            pct: format!("Download progress: {:.2}%", percentage).to_string(),
-        };
-        window.emit(PROGRESS_EVENT, payload).unwrap();
+        info!("Download progress: {:.2}%", percentage);
         if is_abort_state(app.clone()) {
-            let payload = Payload {
-                pct: format!("Download aborted at: {:.2}%", percentage).to_string(),
-            };
-            window.emit(PROGRESS_EVENT, payload).unwrap();
+            info!("Download aborted at: {:.2}%", percentage);
             break;
         }
     }

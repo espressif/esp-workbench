@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { join } from "@tauri-apps/api/path";
 
-import PackagerOptions from "./PackagerOptions.vue";
+import EspIdfDetail from "./EspIdfDetail.vue";
 
 // import RustComponentStatus from './RustComponentStatus.vue';
 // import SystemToolsStatus from './SystemToolsStatus.vue';
@@ -41,7 +41,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <PackagerOptions
+    <EspIdfDetail
       v-model:esp-idf-path="espIdfPath"
       v-model:esp-idf-version="espIdfVersion"
       v-model:esp-tools-path="espToolsPath"
