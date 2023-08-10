@@ -120,8 +120,8 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
 
     <div class="button-container">
       <!-- Installation Button -->
-      <button v-if="!isInstalling" @click="installRustSupport()">Install</button>
-      <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
+      <button :disabled="isInstalling" @click="installRustSupport()">Install</button>
+      <button :disabled="!isInstalling" @click="abortBuild()">Cancel</button>
     </div>
 
     <LogConsole />
@@ -138,5 +138,12 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
   gap: 20px;
   /* max-width: 500px; */
   margin: auto;
+}
+
+button:disabled {
+  background-color: #e0e0e0;
+  color: #888888;
+  cursor: not-allowed;
+  border: 1px solid #cccccc;
 }
 </style>

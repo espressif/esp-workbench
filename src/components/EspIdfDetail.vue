@@ -81,9 +81,10 @@ function abortBuild() {
     <LogConsole />
 
     <div class="button-container">
-      <button v-if="!isInstalling" @click="installEspIdf()">Install ESP-IDF</button>
-      <button v-if="isInstalling" @click="abortBuild()">Cancel</button>
+      <button @click="installEspIdf()" :disabled="isInstalling">Install ESP-IDF</button>
+      <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>
     </div>
+
   </div>
 
 </template>
@@ -95,6 +96,13 @@ function abortBuild() {
   padding-top: 1em;
   padding-bottom: 1em;
   padding-left: 30em;
+}
+
+button:disabled {
+  background-color: #e0e0e0;
+  color: #888888;
+  cursor: not-allowed;
+  border: 1px solid #cccccc;
 }
 
 .packager-container {
