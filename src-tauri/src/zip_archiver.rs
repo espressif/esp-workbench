@@ -28,7 +28,7 @@ pub fn zip_dir(
     app: tauri::AppHandle,
     src_dir: &str,
     dst_file: &str,
-    method: zip::CompressionMethod,
+    _method: zip::CompressionMethod,
 ) -> Result<(), ZipError> {
     let method = zip::CompressionMethod::Deflated;
     info!(
@@ -54,15 +54,12 @@ pub fn zip_dir(
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
     let state_mutex = app.state::<Mutex<AppState>>();
-    let mut state = state_mutex.lock().unwrap();
-    match state.builder {
-        BuilderState::Abort => true,
-        _ => false,
-    }
+    let state = state_mutex.lock().unwrap();
+    matches!(state.builder, BuilderState::Abort)
 }
 
 fn zip_iter<T>(
-    window: Window,
+    _window: Window,
     app: tauri::AppHandle,
     it: &mut dyn Iterator<Item = DirEntry>,
     prefix: &str,
@@ -111,13 +108,13 @@ where
 }
 
 pub fn unzip(
-    window: Window,
+    _window: Window,
     app: tauri::AppHandle,
     file_path: String,
     output_directory: String,
 ) -> Result<(), ZipError> {
     let file_name = std::path::Path::new(&file_path);
-    let file = fs::File::open(&file_name).unwrap();
+    let file = fs::File::open(file_name).unwrap();
 
     let mut archive = zip::ZipArchive::new(file).unwrap();
 
@@ -154,14 +151,14 @@ pub fn unzip(
             }
         }
 
-        if (&*file.name()).ends_with('/') {
+        if (*file.name()).ends_with('/') {
             // println!("* extracted: \"{}\"", outpath.display());
             fs::create_dir_all(&outpath).unwrap();
         } else {
             // info!("extracted {}", outpath.display());
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p).unwrap();
+                    fs::create_dir_all(p).unwrap();
                 }
             }
             let mut outfile = fs::File::create(&outpath).unwrap();

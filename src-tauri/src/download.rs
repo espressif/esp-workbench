@@ -1,5 +1,5 @@
 use std::path::Path;
-use tokio::fs::OpenOptions;
+
 use tokio::io::AsyncWriteExt;
 
 use tauri::{Manager, Window};
@@ -17,15 +17,12 @@ struct Payload {
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
     let state_mutex = app.state::<Mutex<AppState>>();
-    let mut state = state_mutex.lock().unwrap();
-    match state.builder {
-        BuilderState::Abort => true,
-        _ => false,
-    }
+    let state = state_mutex.lock().unwrap();
+    matches!(state.builder, BuilderState::Abort)
 }
 
 pub async fn download_file(
-    window: Window,
+    _window: Window,
     app: tauri::AppHandle,
     url: &str,
     dest_path: &Path,

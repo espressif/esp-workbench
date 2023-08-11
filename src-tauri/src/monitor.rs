@@ -26,18 +26,15 @@ fn handle_serial(buff: &[u8], window: &Window) {
 
     // Emit the line to the frontend
     let payload = Payload {
-        pct: format!("{}", text).to_string(),
+        pct: text.to_string().to_string(),
     };
     window.emit("monitor-event", payload).unwrap();
 }
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
     let state_mutex = app.state::<Mutex<AppState>>();
-    let mut state = state_mutex.lock().unwrap();
-    match state.builder {
-        BuilderState::Abort => true,
-        _ => false,
-    }
+    let state = state_mutex.lock().unwrap();
+    matches!(state.builder, BuilderState::Abort)
 }
 
 pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
@@ -95,7 +92,7 @@ pub async fn monitor_port(window: Window, app: tauri::AppHandle, port: String) -
     // let mut serial = flasher.into_interface();
 
     let payload = Payload {
-        pct: format!("Starting monitoring").to_string(),
+        pct: "Starting monitoring".to_string().to_string(),
     };
     window.emit("monitor-event", payload).unwrap();
     loop {
@@ -113,7 +110,7 @@ pub async fn monitor_port(window: Window, app: tauri::AppHandle, port: String) -
 
         if is_abort_state(app.clone()) {
             let payload = Payload {
-                pct: format!("Monitoring stopped").to_string(),
+                pct: "Monitoring stopped".to_string().to_string(),
             };
             window.emit("monitor-event", payload).unwrap();
             break;

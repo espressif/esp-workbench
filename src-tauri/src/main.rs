@@ -3,7 +3,7 @@
 
 use std::sync::Mutex;
 
-use dirs;
+
 
 mod app_state;
 use app_state::{AppState, BuilderState};
@@ -26,7 +26,7 @@ mod zip_archiver;
 use zip_archiver::{unzip, zip_dir};
 
 use tauri::{State, Window};
-use thiserror;
+
 
 use serialport::available_ports;
 use sysinfo::{DiskExt, System, SystemExt};
@@ -371,7 +371,7 @@ fn main() {
         ])
         .setup(|app| {
             // Initialize the logging system
-            setup_logging(&app);
+            setup_logging(app);
             Ok(())
         })
         .run(tauri::generate_context!())

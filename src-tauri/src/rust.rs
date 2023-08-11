@@ -6,9 +6,6 @@ use external_command::run_external_command_with_progress;
 
 use log::info;
 
-use tokio::fs;
-use tokio::io::AsyncWriteExt;
-
 use crate::download::download_file;
 use crate::external_command;
 use crate::external_command::set_exec_permission;
@@ -39,7 +36,7 @@ pub fn get_tool_version(command: &str, flags: &[&str], keyword: Option<&str>) ->
 
     // Split by newline and take the first line.
     let binding = stdout.split('\n').collect::<Vec<&str>>();
-    let line = binding.get(0)?;
+    let line = binding.first()?;
 
     // If a keyword is provided, look for it in the line. If not found, return None.
     if let Some(keyword) = keyword {
@@ -74,7 +71,7 @@ pub fn get_tool_version_xtensa(
 
     // Split by newline and take the first line.
     let binding = stdout.split('\n').collect::<Vec<&str>>();
-    let line = binding.get(0)?;
+    let line = binding.first()?;
 
     // If a keyword is provided, look for it in the line. If not found, return None.
     if let Some(keyword) = keyword {
@@ -217,14 +214,11 @@ async fn download_rustup(window: Window, app: AppHandle) -> Result<String, Strin
     let output_path = output_dir.join(fname);
 
     // Check if rustup is already installed
-    match Command::new(output_path.clone()).arg("--version").output() {
-        Ok(output) => {
-            if output.status.success() {
-                info!("Rustup already installed");
-                return Ok("Rustup already installed".into());
-            }
+    if let Ok(output) = Command::new(output_path.clone()).arg("--version").output() {
+        if output.status.success() {
+            info!("Rustup already installed");
+            return Ok("Rustup already installed".into());
         }
-        Err(_) => {}
     }
 
     // Use the download_file function to download the file
@@ -245,7 +239,7 @@ async fn download_rustup(window: Window, app: AppHandle) -> Result<String, Strin
 async fn install_espup(
     window: Window,
     app: AppHandle,
-    selected_variant: Option<&String>,
+    _selected_variant: Option<&String>,
 ) -> Result<String, String> {
     info!("Installing espup...");
 
@@ -321,7 +315,7 @@ async fn install_rust_toolchain(
         .unwrap()
         .to_string();
 
-    let mut args = vec!["install"];
+    let args = vec!["install"];
     // If there's a variant specified for Windows, pass it as a parameter
     #[cfg(target_os = "windows")]
     if let Some(variant) = selected_variant {

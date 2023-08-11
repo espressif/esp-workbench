@@ -9,22 +9,19 @@ use log::info;
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
     let state_mutex = app.state::<Mutex<AppState>>();
-    let mut state = state_mutex.lock().unwrap();
-    match state.builder {
-        BuilderState::Abort => true,
-        _ => false,
-    }
+    let state = state_mutex.lock().unwrap();
+    matches!(state.builder, BuilderState::Abort)
 }
 
 use tokio::io::AsyncBufReadExt;
 use tokio::process::Command;
 
 pub async fn run_external_command_with_progress(
-    window: Window,
+    _window: Window,
     app: tauri::AppHandle,
     cmd_name: &str,
     cmd_args: &[&str],
-    progress_event: &str,
+    _progress_event: &str,
 ) -> Result<String, ()> {
     let cmd_name_owned = cmd_name.to_string();
     let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
