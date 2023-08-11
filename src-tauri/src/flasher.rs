@@ -1,14 +1,13 @@
-use std::path::PathBuf;
-use std::fs::read;
 use espflash::flasher::Flasher;
 use espflash::flasher::ProgressCallbacks;
 use espflash::interface::Interface;
-use tauri::Window;
-use tauri::AppHandle;
-use serialport::SerialPortInfo;
 use serialport::available_ports;
+use serialport::SerialPortInfo;
+use std::fs::read;
 use std::io;
-
+use std::path::PathBuf;
+use tauri::AppHandle;
+use tauri::Window;
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
@@ -28,14 +27,13 @@ struct FlashProgress {
 }
 
 impl ProgressCallbacks for FlashProgress {
-
     fn init(&mut self, addr: u32, total: usize) {
         println!("init: addr: {:x}, total: {}", addr, total);
         self.current = 0;
         self.total = total;
         let flash_payload = FlashProgressEvent {
-          count: self.current,
-          total
+            count: self.current,
+            total,
         };
         self.window.emit("flash-update", flash_payload).unwrap();
     }
@@ -44,8 +42,8 @@ impl ProgressCallbacks for FlashProgress {
         println!("update: current: {}", current);
         self.current = current;
         let flash_payload = FlashProgressEvent {
-          count: current,
-          total: self.total
+            count: current,
+            total: self.total,
         };
         self.window.emit("flash-update", flash_payload).unwrap();
     }
@@ -53,32 +51,37 @@ impl ProgressCallbacks for FlashProgress {
     fn finish(&mut self) {
         println!("finish");
         let flash_payload = FlashProgressEvent {
-          count: self.total,
-          total: self.total
+            count: self.total,
+            total: self.total,
         };
         self.window.emit("flash-finish", flash_payload).unwrap();
     }
 }
 
 pub fn get_serial_port_info(port_name: &str) -> io::Result<SerialPortInfo> {
-  let ports = available_ports()?;
-  for p in ports {
-      if p.port_name == port_name {
-          return Ok(p);
-      }
-  }
-  Err(io::Error::new(io::ErrorKind::NotFound, "Port not found"))
+    let ports = available_ports()?;
+    for p in ports {
+        if p.port_name == port_name {
+            return Ok(p);
+        }
+    }
+    Err(io::Error::new(io::ErrorKind::NotFound, "Port not found"))
 }
 
 pub fn emit_error(window: &Window, error: &str) {
-  let error_payload = Payload {
-      pct: format!("Error: {}", error),
-  };
-  window.emit("error", error_payload).unwrap();
+    let error_payload = Payload {
+        pct: format!("Error: {}", error),
+    };
+    window.emit("error", error_payload).unwrap();
 }
 
-pub async fn flash_file(window: Window, _: AppHandle, port: String, file_path: String, flash_offset: u32)  -> Result<(), String> {
-
+pub async fn flash_file(
+    window: Window,
+    _: AppHandle,
+    port: String,
+    file_path: String,
+    flash_offset: u32,
+) -> Result<(), String> {
     // let file_metadata = std::fs::metadata(&file_path);
     // match file_metadata {
     //     Ok(metadata) => {
@@ -106,7 +109,7 @@ pub async fn flash_file(window: Window, _: AppHandle, port: String, file_path: S
     let serial_port_info = get_serial_port_info(port.as_str()).unwrap();
     let port_info = match &serial_port_info.port_type {
         serialport::SerialPortType::UsbPort(info) => Some(info.clone()),
-        _ => return Err("Port is not a USB port".to_string() )
+        _ => return Err("Port is not a USB port".to_string()),
     };
     let serial = Interface::new(&serial_port_info, dtr, rts).unwrap();
 
@@ -119,28 +122,34 @@ pub async fn flash_file(window: Window, _: AppHandle, port: String, file_path: S
     };
     window.emit("flash-event", payload).unwrap();
 
-    let mut progress = FlashProgress { window: window.clone(), total: 0, current: 0 };
+    let mut progress = FlashProgress {
+        window: window.clone(),
+        total: 0,
+        current: 0,
+    };
 
     let chunk_size = 1024 * 1024; // 1MB chunk size
-    // let total_size = data.len();
+                                  // let total_size = data.len();
     let mut offset = flash_offset;
     // let mut current_offset = 0;
 
     while !data.is_empty() {
-      let (chunk, rest) = if data.len() > chunk_size {
-          data.split_at(chunk_size)
-      } else {
-          (data.as_ref(), &[][..])
-      };
+        let (chunk, rest) = if data.len() > chunk_size {
+            data.split_at(chunk_size)
+        } else {
+            (data.as_ref(), &[][..])
+        };
 
-      flasher.write_bin_to_flash(offset, chunk, Some(&mut progress)).map_err(|e| {
-          let error = format!("Flash error: {:?}", e);
-          emit_error(&window, &error);
-          error
-      })?;
+        flasher
+            .write_bin_to_flash(offset, chunk, Some(&mut progress))
+            .map_err(|e| {
+                let error = format!("Flash error: {:?}", e);
+                emit_error(&window, &error);
+                error
+            })?;
 
-      offset += chunk.len() as u32;
-      data = rest.to_vec();
+        offset += chunk.len() as u32;
+        data = rest.to_vec();
     }
 
     window.emit("flash-event", Some("Flash Done")).unwrap();

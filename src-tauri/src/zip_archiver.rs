@@ -1,16 +1,16 @@
-use std::io;
-use std::io::{Seek, Write};
-use std::io::Read;
-use std::iter::Iterator;
 use std::fs;
 use std::fs::File;
+use std::io;
+use std::io::Read;
+use std::io::{Seek, Write};
+use std::iter::Iterator;
 use std::path::Path;
 use walkdir::{DirEntry, WalkDir};
 use zip::result::ZipError;
 use zip::write::FileOptions;
 
-use tauri::{Window, Manager};
 use std::sync::Mutex;
+use tauri::{Manager, Window};
 
 use log::info;
 
@@ -29,18 +29,26 @@ pub fn zip_dir(
     src_dir: &str,
     dst_file: &str,
     method: zip::CompressionMethod,
-) -> Result<(), ZipError>
-{
-
+) -> Result<(), ZipError> {
     let method = zip::CompressionMethod::Deflated;
-    info!("Zipping {:?} to {:?} using method {:?} ...", src_dir, dst_file, method);
+    info!(
+        "Zipping {:?} to {:?} using method {:?} ...",
+        src_dir, dst_file, method
+    );
     let archive_file_path = Path::new(dst_file);
     let archive_file = File::create(archive_file_path).unwrap();
 
     let src_walkdir = WalkDir::new(src_dir);
     let src_it = src_walkdir.into_iter();
 
-    zip_iter(window, app, &mut src_it.filter_map(|e| e.ok()), src_dir, archive_file, method)?;
+    zip_iter(
+        window,
+        app,
+        &mut src_it.filter_map(|e| e.ok()),
+        src_dir,
+        archive_file,
+        method,
+    )?;
     Ok(())
 }
 
@@ -49,7 +57,7 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
     let mut state = state_mutex.lock().unwrap();
     match state.builder {
         BuilderState::Abort => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -102,12 +110,11 @@ where
     Result::Ok(())
 }
 
-
 pub fn unzip(
     window: Window,
     app: tauri::AppHandle,
     file_path: String,
-    output_directory: String
+    output_directory: String,
 ) -> Result<(), ZipError> {
     let file_name = std::path::Path::new(&file_path);
     let file = fs::File::open(&file_name).unwrap();

@@ -1,7 +1,6 @@
-
-use tauri::Window;
+use log::{Log, Metadata, Record};
 use tauri::Manager;
-use log::{ Log, Record, Metadata };
+use tauri::Window;
 
 #[derive(Clone, serde::Serialize)]
 struct ConsoleEvent {
@@ -40,18 +39,17 @@ use fern::Dispatch;
 use log::LevelFilter;
 
 pub fn setup_logging(app: &tauri::App) {
-  if let Some(window) = app.get_window("main") {
-      let tauri_logger = TauriLogger::new(window);
+    if let Some(window) = app.get_window("main") {
+        let tauri_logger = TauriLogger::new(window);
 
-      // Set the TauriLogger as the global logger.
-      log::set_boxed_logger(Box::new(tauri_logger)).expect("Failed to set logger");
-      log::set_max_level(log::LevelFilter::Info); // Set max level of logging
+        // Set the TauriLogger as the global logger.
+        log::set_boxed_logger(Box::new(tauri_logger)).expect("Failed to set logger");
+        log::set_max_level(log::LevelFilter::Info); // Set max level of logging
 
-      // Fern setup for stdout logging
-      let _ = Dispatch::new()
-          .chain(std::io::stdout())
-          .level(LevelFilter::Info) // Set desired log level here
-          .apply();
-  }
+        // Fern setup for stdout logging
+        let _ = Dispatch::new()
+            .chain(std::io::stdout())
+            .level(LevelFilter::Info) // Set desired log level here
+            .apply();
+    }
 }
-

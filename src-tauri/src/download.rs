@@ -2,11 +2,11 @@ use std::path::Path;
 use tokio::fs::OpenOptions;
 use tokio::io::AsyncWriteExt;
 
-use tauri::{Window, Manager};
+use tauri::{Manager, Window};
 
-use std::sync::Mutex;
 use crate::app_state::{AppState, BuilderState};
 use log::info;
+use std::sync::Mutex;
 
 const PROGRESS_EVENT: &str = "progress";
 
@@ -20,15 +20,21 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
     let mut state = state_mutex.lock().unwrap();
     match state.builder {
         BuilderState::Abort => true,
-        _ => false
+        _ => false,
     }
 }
 
-pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, dest_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn download_file(
+    window: Window,
+    app: tauri::AppHandle,
+    url: &str,
+    dest_path: &Path,
+) -> Result<(), Box<dyn std::error::Error>> {
     info!("Downloading file from {} to {}", url, dest_path.display());
     let total_size = {
         let resp = reqwest::get(url).await?;
-        resp.content_length().ok_or("unable to get content length")?
+        resp.content_length()
+            .ok_or("unable to get content length")?
     };
 
     let request = reqwest::get(url);
