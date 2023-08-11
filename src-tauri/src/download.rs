@@ -1,6 +1,6 @@
 use std::path::Path;
 use tokio::fs::OpenOptions;
-use tokio::io::AsyncWriteExt; // Add this line
+use tokio::io::AsyncWriteExt;
 
 use tauri::{Window, Manager};
 
@@ -33,7 +33,11 @@ pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, des
     let request = reqwest::get(url);
     let mut response = request.await?;
 
-    let mut dest = OpenOptions::new()
+    if let Some(parent) = dest_path.parent() {
+        std::fs::create_dir_all(parent)?; // Ensure the directory exists
+    }
+
+    let mut dest = tokio::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(&dest_path)
