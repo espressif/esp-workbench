@@ -255,7 +255,11 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
 async fn install_rust_toolchain(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     info!("Installing Rust toolchain via espup... (this might take a while)");
 
-    let espup_path = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin/espup").to_str().unwrap().to_string();
+    #[cfg(unix)]
+    let fname = "espup";
+    #[cfg(windows)]
+    let fname = "espup.exe";
+    let espup_path = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin").join(fname).to_str().unwrap().to_string();
 
     let mut args = vec!["install"];
     // If there's a variant specified for Windows, pass it as a parameter

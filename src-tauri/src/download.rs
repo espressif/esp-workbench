@@ -25,6 +25,7 @@ fn is_abort_state(app: tauri::AppHandle) -> bool {
 }
 
 pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, dest_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    info!("Downloading file from {} to {}", url, dest_path.display());
     let total_size = {
         let resp = reqwest::get(url).await?;
         resp.content_length().ok_or("unable to get content length")?
