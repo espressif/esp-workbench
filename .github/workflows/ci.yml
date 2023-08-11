@@ -1,0 +1,79 @@
+---
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+      - "**/build-release.yaml"
+  pull_request:
+    paths-ignore:
+      - "**/README.md"
+      - "**/build-release.yaml"
+
+env:
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  cargo-checks:
+    name: cargo ${{ matrix.action.command }} - ${{ matrix.job.os }}
+    runs-on: ${{ matrix.job.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - os: macos-latest
+            os-name: macos
+          - os: ubuntu-20.04
+            os-name: linux
+          - os: windows-latest
+            os-name: windows
+            binary-postfix: ".exe"
+        action:
+          - command: build
+            args: --release
+          - command: fmt
+            args: --all -- --check
+          # Temporarly disable clippy
+          # - command: clippy
+          #   args: --all-targets --all-features --workspace -- -D warnings
+          - command: doc
+            args: --no-deps --document-private-items --all-features --workspace --examples
+    steps:
+      - name: Install dependencies
+        if: ${{ matrix.job.os == 'ubuntu-20.04' }}
+        run: |
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/' /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get install libudev-dev libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+      - name: Cargo command
+        run: cd src-tauri && cargo ${{ matrix.action.command }} ${{ matrix.action.args }}
+
+  msrv:
+    name: MSRV check
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/' /etc/apt/sources.list
+          sudo apt-get update
+          sudo apt-get install libudev-dev libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.67.1
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+      - name: Cargo check
+        run: cd src-tauri && cargo check
