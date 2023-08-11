@@ -146,7 +146,7 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
 
     #[cfg(target_os = "windows")]
     {
-        let mut args = vec!["install", "-y"];
+        let mut args = vec!["-y"];
 
         if let Some(variant) = selected_variant {
             args.push("--default-host");
