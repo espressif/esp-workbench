@@ -133,8 +133,16 @@ pub async fn install_rust_support(window: Window, app: AppHandle, install_option
 
 pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
 
+    #[cfg(windows)]
+    let fname = "rustup-init.exe";
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let fname = "rustup-init.sh";
+
+    let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin");
+    let rustup_path = output_dir.join(fname);
+
     // Check if rustup is already installed
-    match Command::new("rustup").arg("--version").output() {
+    match Command::new(rustup_path).arg("--version").output() {
         Ok(output) => {
             if output.status.success() {
                 info!("Rustup already installed");
@@ -155,13 +163,13 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
             args.push(variant);
         }
 
-        run_external_command_with_progress(window.clone(), app, "rustup-init.exe", &args, "PROGRESS_EVENT").await;
+        run_external_command_with_progress(window.clone(), app, rustup_path, &args, "PROGRESS_EVENT").await;
     }
 
     #[cfg(unix)]
     {
         let args = vec!["-y"];
-        run_external_command_with_progress(window.clone(), app, "./rustup-init.sh", &args, "PROGRESS_EVENT").await;
+        run_external_command_with_progress(window.clone(), app,rustup_path, &args, "PROGRESS_EVENT").await;
     }
 
     info!("Rustup installed or already present");
