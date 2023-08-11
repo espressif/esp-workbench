@@ -11,6 +11,7 @@ use tokio::io::AsyncWriteExt;
 
 use crate::external_command;
 use crate::external_command::set_exec_permission;
+use crate::download::download_file;
 
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -123,6 +124,7 @@ pub async fn install_rust_support(window: Window, app: AppHandle, install_option
         }
     }
 
+    download_rustup(window.clone(), app.clone()).await?;
     install_rustup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
     install_espup(window.clone(), app.clone(), selected_variant.as_ref()).await?;
     install_rust_toolchain(window, app, selected_variant.as_ref()).await?;
@@ -146,7 +148,7 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
 
     #[cfg(target_os = "windows")]
     {
-        let mut args = vec!["install", "-y"];
+        let mut args = vec!["-y"];
 
         if let Some(variant) = selected_variant {
             args.push("--default-host");
@@ -165,6 +167,40 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
     info!("Rustup installed or already present");
     Ok("Rustup installed or already present".into())
 }
+
+async fn download_rustup(window: Window, app: AppHandle) -> Result<String, String> {
+    info!("Downloading rustup...");
+
+    let url: &'static str;
+    #[cfg(target_os = "windows")]
+    {
+        url = "https://win.rustup.rs/x86_64";
+    }
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    {
+        url = "https://sh.rustup.rs";
+    }
+
+    #[cfg(windows)]
+    let fname = "rustup-init.exe";
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let fname = "rustup-init.sh";
+
+    let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin");
+    let output_path = output_dir.join(fname);
+
+    // Use the download_file function to download the file
+    download_file(window.clone(), app.clone(), url, &output_path).await.map_err(|e| format!("Failed to download rustup: {:?}", e))?;
+
+    // Set execute permission for the binary on Unix-based systems
+    #[cfg(unix)]
+    set_exec_permission(&output_path).map_err(|e| format!("Failed to set execute permissions: {}", e))?;
+
+    info!("rustup downloaded successfully!");
+
+    Ok("rustup installed successfully!".into())
+}
+
 
 async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<&String>) -> Result<String, String> {
     info!("Installing espup...");
@@ -195,23 +231,16 @@ async fn install_espup(window: Window, app: AppHandle, selected_variant: Option<
         url = "https://github.com/esp-rs/espup/releases/latest/download/espup-x86_64-pc-windows-msvc.exe";
     }
 
-    // Download the binary using reqwest's async API
-    let response = reqwest::get(url).await.map_err(|e| format!("Failed to download espup: {}", e))?;
-
     #[cfg(unix)]
     let fname = "espup";
     #[cfg(windows)]
     let fname = "espup.exe";
 
-    let bytes = response.bytes().await.map_err(|e| format!("Failed to read response bytes: {}", e))?;
-
-    let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo/bin");
+    let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin");
     let output_path = output_dir.join(fname);
-    let mut dest = fs::File::create(&output_path)
-       .await
-       .map_err(|e| format!("Failed to create file: {}", e))?;
 
-    dest.write_all(&bytes).await.map_err(|e| format!("Failed to write to file: {}", e))?;
+    // Use the download_file function to download the file
+    download_file(window.clone(), app.clone(), url, &output_path).await.map_err(|e| format!("Failed to download espup: {:?}", e))?;
 
     // Set execute permission for the binary on Unix-based systems
     #[cfg(unix)]
@@ -271,7 +300,7 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
     let tmp_dir = env::temp_dir();
     let file_path = tmp_dir.join("vs_buildtools.exe");
     fs::write(&file_path, &bytes).await;
-    info!(format!("Starting installer at {:?}", &file_path.display()));
+    info!("Starting installer at {:?}", &file_path.display());
 
     // Run the installer with the necessary components
     let args = [

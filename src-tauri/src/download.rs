@@ -1,6 +1,6 @@
 use std::path::Path;
 use tokio::fs::OpenOptions;
-use tokio::io::AsyncWriteExt; // Add this line
+use tokio::io::AsyncWriteExt;
 
 use tauri::{Window, Manager};
 
@@ -33,7 +33,11 @@ pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, des
     let request = reqwest::get(url);
     let mut response = request.await?;
 
-    let mut dest = OpenOptions::new()
+    if let Some(parent) = dest_path.parent() {
+        std::fs::create_dir_all(parent)?; // Ensure the directory exists
+    }
+
+    let mut dest = tokio::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(&dest_path)
@@ -45,9 +49,9 @@ pub async fn download_file(window: Window, app: tauri::AppHandle, url: &str, des
         dest.write_all(&chunk).await?;
         downloaded += chunk.len() as u64;
         let percentage = downloaded as f64 / total_size as f64 * 100.0;
-        info!("Download progress: {:.2}%", percentage);
+        info!("Download progress: {:.1}%", percentage);
         if is_abort_state(app.clone()) {
-            info!("Download aborted at: {:.2}%", percentage);
+            info!("Download aborted at: {:.1}%", percentage);
             break;
         }
     }
