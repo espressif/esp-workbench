@@ -1,6 +1,6 @@
 # ESP Helm
 
-Get all important information for Embedded Development with ESP32 and mainitain the development environment.
+Get all important information for Embedded Development with ESP32 and maintain the development environment.
 
 Check out releases for binary version.
 
