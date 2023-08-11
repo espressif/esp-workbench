@@ -141,17 +141,6 @@ pub async fn install_rustup(window: Window, app: tauri::AppHandle, selected_vari
     let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin");
     let rustup_path = output_dir.join(fname).to_str().unwrap().to_string();
 
-    // Check if rustup is already installed
-    match Command::new(rustup_path.clone()).arg("--version").output() {
-        Ok(output) => {
-            if output.status.success() {
-                info!("Rustup already installed");
-                return Ok("Rustup already installed".into());
-            }
-        },
-        Err(_) => {}
-    }
-
     info!("Installing rustup...");
 
     #[cfg(target_os = "windows")]
@@ -196,6 +185,18 @@ async fn download_rustup(window: Window, app: AppHandle) -> Result<String, Strin
 
     let output_dir = dirs::home_dir().ok_or("Failed to get home directory")?.join(".cargo").join("bin");
     let output_path = output_dir.join(fname);
+
+
+    // Check if rustup is already installed
+    match Command::new(output_path.clone()).arg("--version").output() {
+        Ok(output) => {
+            if output.status.success() {
+                info!("Rustup already installed");
+                return Ok("Rustup already installed".into());
+            }
+        },
+        Err(_) => {}
+    }
 
     // Use the download_file function to download the file
     download_file(window.clone(), app.clone(), url, &output_path).await.map_err(|e| format!("Failed to download rustup: {:?}", e))?;
