@@ -31,12 +31,19 @@ pub async fn run_external_command_with_progress(
 
     info!("Command: {} {}", cmd_name_owned, cmd_args_owned.join(" "));
 
-    let mut child = Command::new(&cmd_name_owned)
+    let child_result = Command::new(&cmd_name_owned)
         .args(&cmd_args_owned)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to launch command");
+        .spawn();
+    
+    let mut child = match child_result {
+        Ok(child) => child,
+        Err(e) => {
+            info!("Failed to launch command: {:?}", e);
+            return Err(());
+        }
+    };
 
     let mut stdout = tokio::io::BufReader::new(child.stdout.take().unwrap());
     let mut stderr = tokio::io::BufReader::new(child.stderr.take().unwrap());
