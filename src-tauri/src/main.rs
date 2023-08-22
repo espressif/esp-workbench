@@ -3,8 +3,6 @@
 
 use std::sync::Mutex;
 
-
-
 mod app_state;
 use app_state::{AppState, BuilderState};
 
@@ -26,7 +24,6 @@ mod zip_archiver;
 use zip_archiver::{unzip, zip_dir};
 
 use tauri::{State, Window};
-
 
 use serialport::available_ports;
 use sysinfo::{DiskExt, System, SystemExt};

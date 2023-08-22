@@ -2,7 +2,7 @@ use log::info;
 
 use crate::download::download_file;
 use std::path::Path;
-use tauri::{Window};
+use tauri::Window;
 
 use crate::external_command::run_external_command_with_progress;
 

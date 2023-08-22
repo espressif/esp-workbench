@@ -316,6 +316,8 @@ async fn install_rust_toolchain(
         .to_string();
 
     let args = vec!["install"];
+    #[cfg(target_os = "windows")]
+    let mut args = vec!["install"];
     // If there's a variant specified for Windows, pass it as a parameter
     #[cfg(target_os = "windows")]
     if let Some(variant) = selected_variant {
@@ -345,25 +347,21 @@ async fn install_rust_toolchain(
 }
 
 #[cfg(target_os = "windows")]
+#[cfg(target_os = "windows")]
 async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Result<String, String> {
     info!("Downloading Visual Studio Build Tools and Windows SDK...");
 
-    // Download vs_buildtools.exe
+    // Define the URL and destination path
     let url = "https://aka.ms/vs/17/release/vs_buildtools.exe";
-    let response = reqwest::get(url)
+    let tmp_dir = std::env::temp_dir();
+    let dest_path = tmp_dir.join("vs_buildtools.exe");
+
+    // Call the download_file function
+    download_file(window.clone(), app.clone(), url, &dest_path)
         .await
         .map_err(|e| format!("Failed to download VS Build Tools: {}", e))?;
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| format!("Failed to read response bytes: {}", e))?;
 
-    // Save to a temporary location
-    use std::env;
-    let tmp_dir = env::temp_dir();
-    let file_path = tmp_dir.join("vs_buildtools.exe");
-    fs::write(&file_path, &bytes).await;
-    info!("Starting installer at {:?}", &file_path.display());
+    info!("Starting installer at {:?}", &dest_path.display());
 
     // Run the installer with the necessary components
     let args = [
@@ -375,9 +373,9 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
         "Microsoft.VisualStudio.Component.Windows11SDK.22621",
     ];
     run_external_command_with_progress(
-        window.clone(),
+        window,
         app,
-        &file_path.to_string_lossy(),
+        &dest_path.to_string_lossy(),
         &args,
         "Installing Visual Studio Build Tools and Windows SDK...",
     )
