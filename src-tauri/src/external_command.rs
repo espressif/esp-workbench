@@ -1,30 +1,27 @@
 use std::process::Stdio;
 use std::sync::Mutex;
 
+use crate::app_state::{AppState, BuilderState};
 use tauri::Manager;
 use tauri::Window;
-use crate::app_state::{AppState, BuilderState};
 
 use log::info;
 
 fn is_abort_state(app: tauri::AppHandle) -> bool {
-  let state_mutex = app.state::<Mutex<AppState>>();
-  let mut state = state_mutex.lock().unwrap();
-  match state.builder {
-      BuilderState::Abort => true,
-      _ => false
-  }
+    let state_mutex = app.state::<Mutex<AppState>>();
+    let state = state_mutex.lock().unwrap();
+    matches!(state.builder, BuilderState::Abort)
 }
 
-use tokio::process::Command;
 use tokio::io::AsyncBufReadExt;
+use tokio::process::Command;
 
 pub async fn run_external_command_with_progress(
-    window: Window,
+    _window: Window,
     app: tauri::AppHandle,
     cmd_name: &str,
     cmd_args: &[&str],
-    progress_event: &str
+    _progress_event: &str,
 ) -> Result<String, ()> {
     let cmd_name_owned = cmd_name.to_string();
     let cmd_args_owned: Vec<String> = cmd_args.iter().map(|&s| s.to_string()).collect();
@@ -36,7 +33,7 @@ pub async fn run_external_command_with_progress(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn();
-    
+
     let mut child = match child_result {
         Ok(child) => child,
         Err(e) => {
@@ -94,8 +91,6 @@ pub async fn run_external_command_with_progress(
     }
 }
 
-
-
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
@@ -110,5 +105,5 @@ pub fn set_exec_permission(path: &std::path::Path) -> std::io::Result<()> {
 
 #[cfg(windows)]
 pub fn set_exec_permission(path: &std::path::Path) -> std::io::Result<()> {
-  todo!()
+    todo!()
 }

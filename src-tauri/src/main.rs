@@ -3,7 +3,7 @@
 
 use std::sync::Mutex;
 
-use dirs;
+
 
 mod app_state;
 use app_state::{AppState, BuilderState};
@@ -23,13 +23,13 @@ mod rust;
 use rust::{check_rust_support, install_rust_support};
 
 mod zip_archiver;
-use zip_archiver::{zip_dir, unzip};
+use zip_archiver::{unzip, zip_dir};
 
-use thiserror;
 use tauri::{State, Window};
 
-use sysinfo::{System, SystemExt, DiskExt};
+
 use serialport::available_ports;
+use sysinfo::{DiskExt, System, SystemExt};
 
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
@@ -51,7 +51,13 @@ async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, 
 
 // Command to copress directories into a archive file.
 #[tauri::command]
-async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, source_path: String, target_path:String) -> Result<String, ()> {
+async fn compress(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    source_path: String,
+    target_path: String,
+) -> Result<String, ()> {
     let method = zip::CompressionMethod::Deflated;
 
     {
@@ -59,7 +65,13 @@ async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, 
         state.builder = BuilderState::Running;
     }
 
-    let result = zip_dir(window,app.clone(), source_path.as_str(), target_path.as_str(), method);
+    let result = zip_dir(
+        window,
+        app.clone(),
+        source_path.as_str(),
+        target_path.as_str(),
+        method,
+    );
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Idle;
@@ -67,19 +79,25 @@ async fn compress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, 
 
     match result {
         Ok(_) => Ok("Success".to_string()),
-        Err(_) => Err(())
+        Err(_) => Err(()),
     }
 }
 
 // Command to decompress a archive file into a directory.
 #[tauri::command]
-async fn decompress(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, source_path: String, target_path:String) -> Result<String, ()> {
+async fn decompress(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    source_path: String,
+    target_path: String,
+) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
     }
 
-    let result = unzip(window,app.clone(), source_path, target_path);
+    let result = unzip(window, app.clone(), source_path, target_path);
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Idle;
@@ -87,19 +105,24 @@ async fn decompress(window: Window, app: tauri::AppHandle, state_mutex: State<'_
 
     match result {
         Ok(_) => Ok("Success".to_string()),
-        Err(_) => Err(())
+        Err(_) => Err(()),
     }
 }
 
 // Command to run install shell script of ESP-IDF
 #[tauri::command]
-async fn run_esp_idf_install_script(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, target_path:String) -> Result<String, ()> {
+async fn run_esp_idf_install_script(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    target_path: String,
+) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
     }
 
-    let result = run_install_script(window,app.clone(), target_path);
+    let result = run_install_script(window, app.clone(), target_path);
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Idle;
@@ -107,20 +130,26 @@ async fn run_esp_idf_install_script(window: Window, app: tauri::AppHandle, state
 
     match result {
         Ok(_) => Ok("Success".to_string()),
-        Err(_) => Err(())
+        Err(_) => Err(()),
     }
 }
 
-
 // Command to download ESP-IDF to ZIP file
 #[tauri::command]
-async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, version: String, target_path:String) -> Result<String, ()> {
+async fn download_esp_idf(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    version: String,
+    target_path: String,
+) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
     }
 
-    let download_handle = tokio::spawn(esp_idf::download_esp_idf(window, app, version, target_path));
+    let download_handle =
+        tokio::spawn(esp_idf::download_esp_idf(window, app, version, target_path));
 
     let result = download_handle.await;
 
@@ -136,7 +165,6 @@ async fn download_esp_idf(window: Window, app: tauri::AppHandle, state_mutex: St
         },
         Err(_) => Ok("Download task panicked".to_string().to_string()),
     }
-
 }
 
 // Command to get list of ESP-IDF stored in users home directory as array of strings
@@ -162,7 +190,7 @@ async fn get_esp_idf_list() -> Result<Vec<String>, ()> {
 async fn get_user_home() -> Result<String, ()> {
     match dirs::home_dir() {
         Some(path) => Ok(path.to_str().unwrap().to_string()),
-        None => Err(())
+        None => Err(()),
     }
 }
 
@@ -172,7 +200,7 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
     #[cfg(unix)]
     match dirs::home_dir() {
         Some(path) => Ok(format!("{}/{}", path.to_str().unwrap(), ".espressif")),
-        None => Err(())
+        None => Err(()),
     }
 
     #[cfg(windows)]
@@ -182,7 +210,12 @@ async fn get_esp_idf_tools_dir() -> Result<String, ()> {
 use crate::monitor::monitor_port;
 
 #[tauri::command]
-async fn start_monitor(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, port: String) -> Result<String, ()> {
+async fn start_monitor(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    port: String,
+) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
@@ -222,13 +255,26 @@ async fn stop_monitor(state_mutex: State<'_, Mutex<AppState>>) -> Result<String,
 // }
 
 #[tauri::command]
-async fn start_flash(window: Window, app: tauri::AppHandle, state_mutex: State<'_, Mutex<AppState>>, port: String, file_path: String, flash_offset: u32) -> Result<String, ()> {
+async fn start_flash(
+    window: Window,
+    app: tauri::AppHandle,
+    state_mutex: State<'_, Mutex<AppState>>,
+    port: String,
+    file_path: String,
+    flash_offset: u32,
+) -> Result<String, ()> {
     {
         let mut state = state_mutex.lock().unwrap();
         state.builder = BuilderState::Running;
     }
 
-    let flasher_handle = tokio::spawn(flasher::flash_file(window, app, port, file_path, flash_offset));
+    let flasher_handle = tokio::spawn(flasher::flash_file(
+        window,
+        app,
+        port,
+        file_path,
+        flash_offset,
+    ));
 
     let result = flasher_handle.await;
 
@@ -253,11 +299,6 @@ async fn stop_flash(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, (
     Ok("ok".to_string())
 }
 
-
-
-
-
-
 #[tauri::command]
 async fn get_disk_usage() -> Result<Vec<String>, ()> {
     let mut sys = System::new_all();
@@ -276,52 +317,61 @@ async fn get_disk_usage() -> Result<Vec<String>, ()> {
     Ok(disk_info)
 }
 
-
 #[derive(serde::Serialize)]
 struct ConnectedPort {
-  port_name: String,
-  product: String,
-  pid: u16,
-  vid: u16,
+    port_name: String,
+    product: String,
+    pid: u16,
+    vid: u16,
 }
 
 #[tauri::command]
 async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
-  let mut esp32s = vec![];
-  if let Ok(ports) = available_ports() {
-    for p in ports {
-      if let serialport::SerialPortType::UsbPort(info) = p.port_type {
-        // if info.manufacturer.is_some() && (info.vid == 4292 || info.vid == 1027) {
-          // 4292 = 0x10C4 (Silabs CP210x)
-          // 1027 = 0x0403 (FTDI)
-          esp32s.push(ConnectedPort {
-            port_name: p.port_name,
-            product: info.product.unwrap_or("".to_string()),
-            pid: info.pid,
-            vid: info.vid,
-          });
-        // }
-      }
+    let mut esp32s = vec![];
+    if let Ok(ports) = available_ports() {
+        for p in ports {
+            if let serialport::SerialPortType::UsbPort(info) = p.port_type {
+                // if info.manufacturer.is_some() && (info.vid == 4292 || info.vid == 1027) {
+                // 4292 = 0x10C4 (Silabs CP210x)
+                // 1027 = 0x0403 (FTDI)
+                esp32s.push(ConnectedPort {
+                    port_name: p.port_name,
+                    product: info.product.unwrap_or("".to_string()),
+                    pid: info.pid,
+                    vid: info.vid,
+                });
+                // }
+            }
+        }
     }
-  }
-  esp32s
+    esp32s
 }
 
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
-            compress, decompress, download_esp_idf, get_connected_serial_devices, get_disk_usage,
-            get_user_home, get_esp_idf_list, get_esp_idf_tools_dir, abort_build, run_esp_idf_install_script,
-            start_flash, stop_flash,
-            start_monitor, stop_monitor,
+            compress,
+            decompress,
+            download_esp_idf,
+            get_connected_serial_devices,
+            get_disk_usage,
+            get_user_home,
+            get_esp_idf_list,
+            get_esp_idf_tools_dir,
+            abort_build,
+            run_esp_idf_install_script,
+            start_flash,
+            stop_flash,
+            start_monitor,
+            stop_monitor,
             check_rust_support,
             install_rust_support,
             get_platform
         ])
         .setup(|app| {
             // Initialize the logging system
-            setup_logging(&app);
+            setup_logging(app);
             Ok(())
         })
         .run(tauri::generate_context!())

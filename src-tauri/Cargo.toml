@@ -1,11 +1,12 @@
 [package]
-name = "esp-helm"
-version = "0.0.0"
-description = "Maintain ESP32 Development Environment"
-authors = ["Juraj Michálek <juraj.michalek@espressif.com>"]
-license = ""
-repository = ""
-edition = "2021"
+name         = "esp-helm"
+version      = "0.1.0"
+description  = "Maintain ESP32 Development Environment"
+authors      = ["Juraj Michálek <juraj.michalek@espressif.com>"]
+license      = ""
+repository   = "https://github.com/georgik/esp-helm"
+edition      = "2021"
+rust-version = "1.67.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,8 +21,15 @@ log = "0.4.19"
 reqwest = { version = "0.11", features = ["blocking"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tauri = { version = "1.4", features = [ "updater", "path-all", "dialog-ask", "dialog-confirm", "dialog-open", "shell-open"] }
-tokio = { version = "1.29.1", features = [ "io-util", "macros", "process" ] }
+tauri = { version = "1.4", features = [
+  "updater",
+  "path-all",
+  "dialog-ask",
+  "dialog-confirm",
+  "dialog-open",
+  "shell-open",
+] }
+tokio = { version = "1.29.1", features = ["io-util", "macros", "process"] }
 thiserror = "1.0.44"
 zip = "0.6.6"
 walkdir = "2.3.3"

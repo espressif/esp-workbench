@@ -1,4 +1,3 @@
-
 #[derive(Clone)]
 pub enum BuilderState {
     Idle,
@@ -12,8 +11,6 @@ pub struct AppState {
     pub builder: BuilderState,
 }
 
-
-
 impl Default for AppState {
     fn default() -> Self {
         Self {
@@ -21,4 +18,3 @@ impl Default for AppState {
         }
     }
 }
-
