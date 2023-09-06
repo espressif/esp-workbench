@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 
-const ESP32_PIDS = ['0x1001', '0x6001', '0x6010', '0x7523', '0xEA60'];
+const ESP32_PIDS = ['0x1001', '0x55D4', '0x6001', '0x6010', '0x7523', '0xEA60'];
 const ESP32_VIDS = ['0x0403', '0x10C4', '0x10C5', '0x1A86', '0x303A'];
 
 
