@@ -1,10 +1,10 @@
 [package]
-name         = "esp-helm"
+name         = "esp-workbench"
 version      = "0.1.0"
 description  = "Maintain ESP32 Development Environment"
 authors      = ["Juraj Michálek <juraj.michalek@espressif.com>"]
 license      = ""
-repository   = "https://github.com/georgik/esp-helm"
+repository   = "https://github.com/espressif/esp-workbench"
 edition      = "2021"
 rust-version = "1.67.1"
 

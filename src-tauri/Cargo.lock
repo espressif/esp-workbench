@@ -1166,7 +1166,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "esp-helm"
+name = "esp-idf-part"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28192549b6c3d0bfd3be8ff694802b8d92ff7e1b12a6fd0285ca96c66e97bed3"
+dependencies = [
+ "csv",
+ "deku",
+ "heapless",
+ "md5",
+ "parse_int",
+ "regex",
+ "serde",
+ "serde_plain",
+ "strum 0.24.1",
+ "thiserror",
+]
+
+[[package]]
+name = "esp-workbench"
 version = "0.1.0"
 dependencies = [
  "dirs",
@@ -1185,24 +1203,6 @@ dependencies = [
  "tokio",
  "walkdir",
  "zip",
-]
-
-[[package]]
-name = "esp-idf-part"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28192549b6c3d0bfd3be8ff694802b8d92ff7e1b12a6fd0285ca96c66e97bed3"
-dependencies = [
- "csv",
- "deku",
- "heapless",
- "md5",
- "parse_int",
- "regex",
- "serde",
- "serde_plain",
- "strum 0.24.1",
- "thiserror",
 ]
 
 [[package]]
