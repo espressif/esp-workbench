@@ -6,6 +6,7 @@ import DiskUsage from './DiskUsage.vue';
 import EspIdfList from './EspIdfList.vue';
 import ConnectedDevicesList from "./ConnectedDevicesList.vue";
 import RustDashboardTile from "./RustDashboardTile.vue";
+import BooksTile from "./BooksTile.vue";
 
 let versions = ref<string[]>([]);
 
@@ -45,6 +46,9 @@ onMounted(() => {
     </div>
     <div class="tile">
       <rust-dashboard-tile />
+    </div>
+    <div class="tile">
+      <books-tile />
     </div>
   </div>
 </template>

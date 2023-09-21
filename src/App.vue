@@ -40,15 +40,20 @@ onMounted(() => {
     </aside>
     <main>
       <ErrorMessage v-if="errorMessage" :message="errorMessage" @dismiss="errorMessage = ''" />
-      <h1>ESP Helm</h1>
+      <h1>ESP Workbench</h1>
       <div>Navigate with ease in the world of ESP32</div>
-      <router-view />
+      <div class="router-view">
+        <router-view />
+      </div>
       <div class="version">Version: {{ appVersion }}</div>
     </main>
   </div>
 </template>
 
 <style scoped>
+.router-view {
+  height: 78vh;
+}
 .version {
   position: fixed;
   bottom: 10px;
@@ -57,7 +62,7 @@ onMounted(() => {
 }
 
 .container {
-  display: flex;
+  display: flex;;
 }
 
 .sidebar {

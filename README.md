@@ -1,4 +1,4 @@
-# ESP Helm
+# ESP Workbench
 
 Get all important information for Embedded Development with ESP32 and maintain the development environment.
 
