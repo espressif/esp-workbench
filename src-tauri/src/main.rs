@@ -297,6 +297,35 @@ async fn stop_flash(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, (
 }
 
 #[tauri::command]
+async fn request_project_diagnostics(project_path: String) -> Vec<String> {
+    let mut diagnostics = Vec::<String>::new();
+
+    let project_directories = vec![
+        "components",
+        "main",
+        "build",
+        "bootloader",
+        "docs",
+        "examples",
+        "include",
+        "kconfig",
+        "libs",
+        "test",
+        "tools",
+        "util",
+    ];
+
+    for project_directory in project_directories {
+        let path = format!("{}/{}", project_path, project_directory);
+        let exists = std::path::Path::new(&path).exists();
+        diagnostics.push(project_directory.to_string());
+    }
+
+    diagnostics
+}
+
+
+#[tauri::command]
 async fn get_disk_usage() -> Result<Vec<String>, ()> {
     let mut sys = System::new_all();
     sys.refresh_all();
@@ -364,7 +393,8 @@ fn main() {
             stop_monitor,
             check_rust_support,
             install_rust_support,
-            get_platform
+            get_platform,
+            request_project_diagnostics,
         ])
         .setup(|app| {
             // Initialize the logging system

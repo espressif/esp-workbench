@@ -32,6 +32,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/rust/book",
     name: "RustBook",
     component: () => import("./components/RustBook.vue"),
+  },
+  {
+    path: "/doctor",
+    name: "ProjectDoctor",
+    component: () => import("./components/ProjectDoctor.vue"),
   }
 ];
 

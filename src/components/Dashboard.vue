@@ -7,6 +7,7 @@ import EspIdfList from './EspIdfList.vue';
 import ConnectedDevicesList from "./ConnectedDevicesList.vue";
 import RustDashboardTile from "./RustDashboardTile.vue";
 import BooksTile from "./BooksTile.vue";
+import ProjectDoctorTile from "./ProjectDoctorTile.vue";
 
 let versions = ref<string[]>([]);
 
@@ -49,6 +50,9 @@ onMounted(() => {
     </div>
     <div class="tile">
       <books-tile />
+    </div>
+    <div class="tile">
+      <project-doctor-tile />
     </div>
   </div>
 </template>
