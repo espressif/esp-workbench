@@ -95,4 +95,9 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .tile {
+    background-color: #989898;
+  }
+}
 </style>
