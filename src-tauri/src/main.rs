@@ -182,6 +182,30 @@ async fn get_esp_idf_list() -> Result<Vec<String>, ()> {
     Ok(esp_idf_list)
 }
 
+const GITHUB_REPOSITORY: &str = "espressif/esp-idf";
+
+#[tauri::command]
+async fn get_available_idf_versions() -> Result<String, String> {
+    let url = format!(
+        "https://api.github.com/repos/{}/releases",
+        GITHUB_REPOSITORY
+    );
+    let client = reqwest::Client::builder()
+        .user_agent("Tauri-git-installer-app")
+        .build()
+        .map_err(|err| format!("Failed to create reqwest client: {}", err))?;
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|err| format!("Failed to make request: {}", err))?;
+    let versions = response
+        .text()
+        .await
+        .map_err(|err| format!("Failed to read response: {}", err))?;
+    Ok(versions)
+}
+
 // Comand to get the current user home
 #[tauri::command]
 async fn get_user_home() -> Result<String, ()> {
@@ -356,6 +380,7 @@ fn main() {
             get_user_home,
             get_esp_idf_list,
             get_esp_idf_tools_dir,
+            get_available_idf_versions,
             abort_build,
             run_esp_idf_install_script,
             start_flash,

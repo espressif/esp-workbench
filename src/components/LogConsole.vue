@@ -65,4 +65,10 @@ onMounted(async () => {
   background-color: #f8f8f8;
   text-align: left;
 }
+
+@media (prefers-color-scheme: dark) {
+  .log-output {
+    background-color: #989898;
+  }
+}
 </style>
