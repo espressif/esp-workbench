@@ -186,12 +186,9 @@ const GITHUB_REPOSITORY: &str = "espressif/esp-idf";
 
 #[tauri::command]
 async fn get_available_idf_versions() -> Result<String, String> {
-    let url = format!(
-        "https://api.github.com/repos/{}/releases",
-        GITHUB_REPOSITORY
-    );
+    let url = "https://dl.espressif.com/dl/esp-idf/idf_versions.js".to_string();
     let client = reqwest::Client::builder()
-        .user_agent("Tauri-git-installer-app")
+        .user_agent("esp-workbench")
         .build()
         .map_err(|err| format!("Failed to create reqwest client: {}", err))?;
     let response = client
@@ -199,11 +196,14 @@ async fn get_available_idf_versions() -> Result<String, String> {
         .send()
         .await
         .map_err(|err| format!("Failed to make request: {}", err))?;
-    let versions = response
+    let js_versions_file = response
         .text()
         .await
         .map_err(|err| format!("Failed to read response: {}", err))?;
-    Ok(versions)
+    // Find the start and end index of the object within the JavaScript file
+    let object_start = js_versions_file.find("{").ok_or("Object start not found")?;
+    let object_end = js_versions_file.rfind("}").ok_or("Object end not found")? + 1;
+    Ok(js_versions_file[object_start..object_end].to_string())
 }
 
 // Comand to get the current user home
