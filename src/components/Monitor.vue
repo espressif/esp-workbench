@@ -1,23 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
 
 let isMonitoring = ref(true);
+const console = ref<HTMLDivElement | null>(null);
+let autoscroll = ref(true);
 let logData = ref("");
 let port = ref("");
+
 type Payload = {
   pct: string,
 }
 onMounted(() => {
   port.value = decodeURIComponent(window.location.pathname.split("/")[2]); // assuming "/monitor/:port" route
 
-  appWindow.listen('monitor-event', ({payload}) => logData.value += (payload as Payload).pct) + "\n";
+  appWindow.listen('monitor-event', ({payload}) => {
+    logData.value += (payload as Payload).pct;
+    if (autoscroll.value) {
+      nextTick(() => {
+        const div = console.value!;
+        div.scrollTo({top: div.scrollHeight, behavior: "smooth"});
+      });
+    }
+  });
   invoke('start_monitor', { port: port.value })
     .catch((error) => {
       console.error(error);
     });
   isMonitoring.value = true;
+  
 });
 
 onUnmounted(() => {
@@ -65,8 +77,10 @@ const stopMonitoring = () => {
 
     <div class="log-container">
       <h2>Monitoring Port {{ port }}</h2>
-      <pre class="console">{{ logData }}</pre>
+      <pre class="console" ref="console">{{ logData }}</pre>
       <div class="button-container">
+        <input type="checkbox" v-model="autoscroll" id="autoscroll">
+        <label for="autoscroll">Autoscroll</label>
         <button @click="stopMonitoring">Stop</button>
       </div>
     </div>
@@ -111,6 +125,21 @@ const stopMonitoring = () => {
   display: flex;
   justify-content: flex-end;
   padding-top: 1em;
+}
+
+.button-container label {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.button-container input[type=checkbox] {
+  margin-right: 10px;
+  margin-top: 15px;
+}
+
+.button-container button {
+  margin-left: 10px;
 }
 
 @keyframes blink {
