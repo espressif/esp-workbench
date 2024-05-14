@@ -26,8 +26,9 @@ fn handle_serial(buff: &[u8], window: &Window) {
 
     // Emit the line to the frontend
     let payload = Payload {
-        pct: text.to_string().to_string(),
+        pct: format!("{}\r\n", text),
     };
+    // println!("payload: {:?}", payload);
     window.emit("monitor-event", payload).unwrap();
 }
 
@@ -92,7 +93,7 @@ pub async fn monitor_port(window: Window, app: tauri::AppHandle, port: String) -
     // let mut serial = flasher.into_interface();
 
     let payload = Payload {
-        pct: "Starting monitoring".to_string().to_string(),
+        pct: format!("{}\r\n", "Starting monitoring"),
     };
     window.emit("monitor-event", payload).unwrap();
     loop {
@@ -110,7 +111,7 @@ pub async fn monitor_port(window: Window, app: tauri::AppHandle, port: String) -
 
         if is_abort_state(app.clone()) {
             let payload = Payload {
-                pct: "Monitoring stopped".to_string().to_string(),
+                pct: format!("{}\r\n","Monitoring stopped"),
             };
             window.emit("monitor-event", payload).unwrap();
             break;
