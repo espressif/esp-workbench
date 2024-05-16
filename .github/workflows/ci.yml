@@ -29,7 +29,7 @@ jobs:
         job:
           - os: macos-latest
             os-name: macos
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             os-name: linux
           - os: windows-latest
             os-name: windows
@@ -46,13 +46,13 @@ jobs:
             args: --no-deps --document-private-items --all-features --workspace --examples
     steps:
       - name: Install dependencies
-        if: ${{ matrix.job.os == 'ubuntu-20.04' }}
+        if: ${{ matrix.job.os == 'ubuntu-latest' }}
         run: |
           sudo sed -i 's/azure.archive.ubuntu.com/archive.ubuntu.com/' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get install libudev-dev libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Enable caching
@@ -62,7 +62,7 @@ jobs:
 
   msrv:
     name: MSRV check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
         run: |
@@ -70,7 +70,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libudev-dev libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -79,3 +79,71 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Cargo check
         run: cd src-tauri && cargo check
+
+  tauri-tests:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        webdriver-test: [ selenium]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tauri dependencies
+        run: >
+          sudo apt-get update &&
+          sudo apt-get install -y
+          libgtk-3-dev
+          libgtksourceview-3.0-dev
+          webkit2gtk-4.0
+          libappindicator3-dev
+          webkit2gtk-driver
+          xvfb
+
+      - name: Rust stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Node v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Yarn install
+        run: yarn install
+        working-directory: webdriver/
+
+      - name: Install tauri-driver
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: tauri-driver
+
+      - name: WebDriver
+        run: xvfb-run yarn workspace ${{ matrix.webdriver-test }} test
+        working-directory: webdriver/
