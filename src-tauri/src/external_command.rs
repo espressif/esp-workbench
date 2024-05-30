@@ -2,8 +2,7 @@ use std::process::Stdio;
 use std::sync::Mutex;
 
 use crate::app_state::{AppState, BuilderState};
-use tauri::Manager;
-use tauri::Window;
+use tauri::{Manager, AppHandle};
 
 use log::info;
 
@@ -21,7 +20,6 @@ fn log_to_frontend(app: &tauri::AppHandle, message: &str) {
 }
 
 pub async fn run_external_command_with_progress(
-    window: Window,
     app: tauri::AppHandle,
     cmd_name: &str,
     cmd_args: &[&str],

@@ -1,0 +1,54 @@
+.router-view {
+  height: 78vh;
+}
+.version {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: xx-small;
+}
+
+.container {
+  display: flex;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #e0e0e0;
+  width: 60px;
+  padding: 10px 10px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+}
+
+.nav-icon {
+  margin-bottom: 20px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+}
+
+.sidebar .toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sidebar .toggle-button img {
+  width: 30px;
+  height: 30px;
+  filter: invert(50%);
+}
+
+main {
+  flex: 1;
+  padding-left: 80px;
+}

@@ -1,45 +1,64 @@
-use std::process::Command;
-use std::sync::{Arc, Mutex};
-use tauri::{State, Window};
+use async_std::sync::{Arc, Mutex};
+use tauri::{State, AppHandle};
 use crate::Author;
+use crate::external_command::run_external_command_with_progress;
 
 pub struct HugoState {
     pub is_running: Arc<Mutex<bool>>,
 }
 
 #[tauri::command]
-pub async fn launch_hugo(state: State<'_, HugoState>) -> Result<(), String> {
-    let mut is_running = state.is_running.lock().unwrap();
-    if *is_running {
-        return Err("Hugo is already running".to_string());
+pub async fn launch_hugo(state: State<'_, HugoState>, app: AppHandle) -> Result<String, String> {
+    {
+        let mut is_running = state.is_running.lock().await;
+        if *is_running {
+            return Err("Hugo is already running".to_string());
+        }
+
+        // Set Hugo state to running
+        *is_running = true;
+    } // MutexGuard is dropped here
+
+    // Execute Hugo command and stream output to frontend
+    let result = run_external_command_with_progress(app.clone(), "hugo", &["server", "--source", "~/.espressif/devportal"], "hugo-progress").await;
+
+    if result.is_err() {
+        let mut is_running = state.is_running.lock().await;
+        *is_running = false;
+        return Err("Failed to start Hugo server".to_string());
     }
 
-    Command::new("hugo")
-        .args(&["server", "--source", "~/.espressif/devportal"])
-        .spawn()
-        .map_err(|e| e.to_string())?;
-
-    *is_running = true;
-    Ok(())
+    Ok("Hugo server started".into())
 }
 
 #[tauri::command]
-pub async fn restart_hugo(state: State<'_, HugoState>) -> Result<(), String> {
-    let mut is_running = state.is_running.lock().unwrap();
-    if *is_running {
-        // Send SIGTERM to Hugo process
-        Command::new("pkill")
-            .args(&["-f", "hugo server"])
-            .output()
-            .map_err(|e| e.to_string())?;
+pub async fn restart_hugo(state: State<'_, HugoState>, app: AppHandle) -> Result<String, String> {
+    let relaunch: bool;
+    {
+        let mut is_running = state.is_running.lock().await;
+        relaunch = *is_running;
+        if relaunch {
+            // Send SIGTERM to Hugo process
+            run_external_command_with_progress(app.clone(), "pkill", &["-f", "hugo server"], "hugo-progress").await.ok();
+            *is_running = false;
+        }
+    } // MutexGuard is dropped here
 
+    if relaunch {
         // Relaunch Hugo
-        Command::new("hugo")
-            .args(&["server", "--source", "~/.espressif/devportal"])
-            .spawn()
-            .map_err(|e| e.to_string())?;
+        let result = run_external_command_with_progress(app.clone(), "hugo", &["server", "--source", "~/.espressif/devportal"], "hugo-progress").await;
+
+        if result.is_err() {
+            let mut is_running = state.is_running.lock().await;
+            *is_running = false;
+            return Err("Failed to restart Hugo server".to_string());
+        }
+
+        let mut is_running = state.is_running.lock().await;
+        *is_running = true;
     }
-    Ok(())
+
+    Ok("Hugo server restarted".to_string())
 }
 
 #[tauri::command]
@@ -74,4 +93,24 @@ pub async fn get_authors() -> Result<Vec<Author>, String> {
         }
     }
     Ok(authors)
+}
+
+#[tauri::command]
+pub async fn delete_author(file_name: String) -> Result<(), String> {
+    let authors_dir = dirs::home_dir().unwrap().join(".espressif/devportal/data/authors");
+    let content_dir = dirs::home_dir().unwrap().join(".espressif/devportal/content/authors");
+    let file_path = authors_dir.join(&file_name);
+    let index_path = content_dir.join(file_name.replace(".json", "")).join("_index.md");
+
+    // Remove author JSON file
+    std::fs::remove_file(file_path).map_err(|e| e.to_string())?;
+
+    // Remove _index.md file and the directory if empty
+    std::fs::remove_file(index_path.clone()).map_err(|e| e.to_string())?;
+    let content_dir = index_path.parent().unwrap();
+    if std::fs::read_dir(content_dir).map_err(|e| e.to_string())?.next().is_none() {
+        std::fs::remove_dir(content_dir).map_err(|e| e.to_string())?;
+    }
+
+    Ok(())
 }

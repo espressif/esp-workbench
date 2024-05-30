@@ -411,6 +411,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             compress,
             decompress,
+            delete_author,
             download_esp_idf,
             execute_command,
             get_connected_serial_devices,

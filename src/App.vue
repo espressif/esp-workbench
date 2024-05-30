@@ -3,11 +3,13 @@ import { onMounted, ref } from "vue";
 import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
 import HomeIcon from "./components/HomeIcon.vue";
+import Console from "./components/Console.vue";
 import ErrorMessage from './components/ErrorMessage.vue';
-import Console from './components/Console.vue';
+import ConsoleIcon from './assets/console-icon.svg';
 
 const appVersion = ref('');
 const errorMessage = ref("");
+const isConsoleVisible = ref(false);
 
 async function fetchVersion() {
   appVersion.value = await getVersion();
@@ -27,6 +29,10 @@ onMounted(() => {
 
   fetchVersion();
 });
+
+const toggleConsole = () => {
+  isConsoleVisible.value = !isConsoleVisible.value;
+};
 </script>
 
 <template>
@@ -35,6 +41,9 @@ onMounted(() => {
       <router-link to="/" class="nav-icon">
         <HomeIcon />
       </router-link>
+      <button class="toggle-button" @click="toggleConsole">
+        <img :src="ConsoleIcon" alt="Console Icon" />
+      </button>
     </aside>
     <main>
       <ErrorMessage v-if="errorMessage" :message="errorMessage" @dismiss="errorMessage = ''" />
@@ -45,48 +54,8 @@ onMounted(() => {
       </div>
       <div class="version">Version: {{ appVersion }}</div>
     </main>
-    <Console />
+    <Console :is-visible="isConsoleVisible" />
   </div>
 </template>
 
-<style scoped>
-.router-view {
-  height: 78vh;
-}
-.version {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  font-size: xx-small;
-}
-
-.container {
-  display: flex;;
-}
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  flex-direction: column;
-  align-items: center;
-  /* background-color: #555; */
-  /* color: #fff; */
-  width: 60px;
-  padding: 10px 10px;
-}
-
-.nav-icon {
-  margin-bottom: 20px;
-}
-
-.icon {
-  width: 30px;
-  height: 30px;
-}
-
-main {
-  flex: 1;
-  padding-left: 20px;
-}
-</style>
+<style scoped src="./App.css"></style>

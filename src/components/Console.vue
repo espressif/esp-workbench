@@ -1,27 +1,24 @@
 <template>
-  <div>
-    <div v-show="isVisible" class="console">
-      <div class="console-output" ref="consoleOutput">
-        <div v-for="log in logs" :key="log.id" v-html="log.message"></div>
-      </div>
-      <div class="input-container">
-        <input
-          type="text"
-          v-model="command"
-          @keyup.enter="executeCommand"
-          placeholder="Enter command"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-        />
-      </div>
+  <div v-show="isVisible" class="console">
+    <div class="console-output" ref="consoleOutput">
+      <div v-for="log in logs" :key="log.id" v-html="log.message"></div>
     </div>
-    <button class="toggle-button" @click="toggleConsole">Console</button>
+    <div class="input-container">
+      <input
+        type="text"
+        v-model="command"
+        @keyup.enter="executeCommand"
+        placeholder="Enter command"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import { appWindow } from '@tauri-apps/api/window';
 import './Console.css';
@@ -36,10 +33,11 @@ const escapeHtml = (unsafe: string) => {
     .replace(/'/g, "&#039;");
 };
 
+const props = defineProps<{ isVisible: boolean }>();
+
 const logs = ref<{ id: number, message: string }[]>([]);
 let logId = 0;
 const command = ref("");
-const isVisible = ref(false);
 const consoleOutput = ref<HTMLElement | null>(null);
 
 const addLog = (message: string) => {
@@ -66,18 +64,20 @@ const executeCommand = () => {
   }
 };
 
-const toggleConsole = () => {
-  isVisible.value = !isVisible.value;
-  console.log("Console toggled. isVisible:", isVisible.value);
-};
-
 const handleKeyDown = (event: KeyboardEvent) => {
-  console.log("Key pressed:", event.key);
   if (event.key === '`') {
     event.preventDefault();
-    toggleConsole();
+    props.isVisible = !props.isVisible;
   }
 };
+
+watch(() => props.isVisible, (newValue) => {
+  if (newValue) {
+    window.addEventListener('keydown', handleKeyDown);
+  } else {
+    window.removeEventListener('keydown', handleKeyDown);
+  }
+});
 
 onMounted(() => {
   appWindow.listen('command-log', (event) => {
@@ -85,12 +85,12 @@ onMounted(() => {
     addLog(payload);
   });
 
-  window.addEventListener('keydown', handleKeyDown);
-  console.log("Key listener added");
+  if (props.isVisible) {
+    window.addEventListener('keydown', handleKeyDown);
+  }
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  console.log("Key listener removed");
 });
 </script>

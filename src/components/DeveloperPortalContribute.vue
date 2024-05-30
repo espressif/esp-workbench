@@ -1,36 +1,35 @@
 <template>
-  <div>
+  <div class="developer-portal-contribute">
     <h2>Developer Portal</h2>
     <div v-if="isDevPortalPresent">
       <button @click="launchHugo">Launch Hugo</button>
-      <iframe v-show="isHugoRunning" src="http://localhost:1313" class="hugo-iframe"></iframe>
+      <button @click="newAuthor">New Author</button>
       <div v-if="authors.length">
         <h3>Authors</h3>
-        <div v-for="(author, index) in authors" :key="author.name">
-          <div v-if="editIndex === index">
-            <input v-model="author.name" placeholder="Name" />
-            <textarea v-model="author.bio" placeholder="Bio"></textarea>
-            <div v-for="(social, socialIndex) in author.social" :key="socialIndex">
-              <input v-model="social.url" placeholder="Social URL" />
-            </div>
-            <button @click="saveAuthor(index)">Save</button>
-            <button @click="editIndex = -1">Cancel</button>
+        <div v-for="author in authors" :key="author.name" class="author">
+          <h4>{{ author.name }}</h4>
+          <p>{{ author.bio }}</p>
+          <div v-for="social in author.social" :key="Object.keys(social)[0]">
+            <a :href="Object.values(social)[0]">{{ Object.keys(social)[0] }}</a>
           </div>
-          <div v-else>
-            <h4>{{ author.name }}</h4>
-            <p>{{ author.bio }}</p>
-            <div v-for="social in author.social" :key="Object.keys(social)[0]">
-              <a :href="Object.values(social)[0]">{{ Object.keys(social)[0] }}</a>
-            </div>
-            <button @click="editIndex = index">Edit</button>
-          </div>
+          <button @click="editAuthor(author)">Edit</button>
+          <button @click="confirmDelete(author)">Delete</button>
         </div>
       </div>
-      <button @click="addNewAuthor">New Author</button>
     </div>
     <div v-else>
       <p>Developer Portal directory is not present.</p>
       <button @click="cloneRepo">Clone Repository</button>
+    </div>
+    <div v-if="showEditForm">
+      <h3>{{ editFormTitle }}</h3>
+      <input v-model="editAuthorData.name" placeholder="Name" />
+      <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
+      <div v-for="(social, index) in editAuthorData.social" :key="index">
+        <input v-model="editAuthorData.social[index].url" placeholder="Social URL" />
+      </div>
+      <button @click="saveAuthor">Save</button>
+      <button @click="cancelEdit">Cancel</button>
     </div>
   </div>
 </template>
@@ -38,11 +37,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
+import './DeveloperPortalContribute.css';
 
 const isDevPortalPresent = ref(false);
 const authors = ref([]);
-const editIndex = ref(-1);
-const isHugoRunning = ref(false);
+const showEditForm = ref(false);
+const editAuthorData = ref({ name: '', bio: '', social: [] });
+const editFormTitle = ref('');
 
 const checkDevPortal = async () => {
   try {
@@ -67,39 +68,69 @@ const cloneRepo = async () => {
 const launchHugo = async () => {
   try {
     await invoke('launch_hugo');
-    isHugoRunning.value = true;
   } catch (error) {
     console.error(error);
   }
 };
 
-const saveAuthor = async (index: number) => {
+const confirmDelete = (author: any) => {
+  if (confirm(`Are you sure you want to delete ${author.name}?`)) {
+    deleteAuthor(author);
+  }
+};
+
+const deleteAuthor = async (author: any) => {
   try {
-    const author = authors.value[index];
     const fileName = `${author.name.toLowerCase().replace(/ /g, '-')}.json`;
-    await invoke('save_author', { author, fileName });
-    editIndex.value = -1;
-    checkDevPortal();
-    if (isHugoRunning.value) {
-      await invoke('restart_hugo');
-    }
+    await invoke('delete_author', { file_name: fileName });
+    checkDevPortal(); // Refresh the list of authors
   } catch (error) {
     console.error(error);
   }
 };
 
-const addNewAuthor = () => {
-  authors.value.push({ name: '', bio: '', social: [{ linkedin: '', twitter: '' }] });
-  editIndex.value = authors.value.length - 1;
+const editAuthor = (author: any) => {
+  editAuthorData.value = { ...author };
+  editFormTitle.value = `Edit Author: ${author.name}`;
+  showEditForm.value = true;
+};
+
+const newAuthor = () => {
+  editAuthorData.value = { name: '', bio: '', social: [] };
+  editFormTitle.value = 'New Author';
+  showEditForm.value = true;
+};
+
+const saveAuthor = async () => {
+  try {
+    const fileName = `${editAuthorData.value.name.toLowerCase().replace(/ /g, '-')}.json`;
+    await invoke('save_author', { author: editAuthorData.value, file_name: fileName });
+    showEditForm.value = false;
+    checkDevPortal(); // Refresh the list of authors
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const cancelEdit = () => {
+  showEditForm.value = false;
 };
 
 onMounted(checkDevPortal);
 </script>
 
 <style scoped>
-.hugo-iframe {
+.developer-portal-contribute {
+  text-align: left;
+}
+
+.author {
+  margin-bottom: 20px;
+}
+
+input, textarea {
+  display: block;
+  margin-bottom: 10px;
   width: 100%;
-  height: 500px;
-  border: none;
 }
 </style>
