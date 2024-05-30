@@ -1,12 +1,6 @@
 .router-view {
   height: 78vh;
 }
-.version {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  font-size: xx-small;
-}
 
 .container {
   display: flex;
@@ -46,6 +40,15 @@
   width: 30px;
   height: 30px;
   filter: invert(50%);
+}
+
+.version {
+  margin-top: auto;
+  font-size: xx-small;
+  text-align: center;
+  padding: 10px 0;
+  width: 100%;
+  border-top: 1px solid #ccc;
 }
 
 main {

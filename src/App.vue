@@ -44,6 +44,7 @@ const toggleConsole = () => {
       <button class="toggle-button" @click="toggleConsole">
         <img :src="ConsoleIcon" alt="Console Icon" />
       </button>
+      <div class="version">Version: {{ appVersion }}</div>
     </aside>
     <main>
       <ErrorMessage v-if="errorMessage" :message="errorMessage" @dismiss="errorMessage = ''" />
@@ -52,7 +53,6 @@ const toggleConsole = () => {
       <div class="router-view">
         <router-view />
       </div>
-      <div class="version">Version: {{ appVersion }}</div>
     </main>
     <Console :is-visible="isConsoleVisible" />
   </div>
