@@ -16,7 +16,12 @@ button {
 input, textarea {
   display: block;
   margin-bottom: 10px;
-  width: 100%;
+  width: calc(100% - 20px); /* Make inputs slightly smaller than the modal */
+  box-sizing: border-box;
+  font-family: 'Consolas', 'Courier New', Courier, monospace; /* Ensure the same font is used */
+  font-size: 14px; /* Ensure consistent font size */
+  border-radius: 4px; /* Add rounded corners */
+  padding: 5px;
 }
 
 /* Modal styles */

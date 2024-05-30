@@ -30,7 +30,7 @@
         <input v-model="editAuthorData.name" placeholder="Name" />
         <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
         <div v-for="(social, index) in editAuthorData.social" :key="index">
-          <input v-model="editAuthorData.social[index].url" placeholder="Social URL" />
+          <input v-model="social.url" placeholder="Social URL" />
         </div>
         <button @click="saveAuthor">Save</button>
         <button @click="cancelEdit">Cancel</button>
@@ -95,7 +95,11 @@ const deleteAuthor = async (author: any) => {
 };
 
 const editAuthor = (author: any) => {
-  editAuthorData.value = { ...author };
+  editAuthorData.value = {
+    name: author.name,
+    bio: author.bio,
+    social: author.social.map((s: any) => ({ url: Object.values(s)[0] }))
+  };
   editFormTitle.value = `Edit Author: ${author.name}`;
   showEditForm.value = true;
 };
