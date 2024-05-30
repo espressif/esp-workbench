@@ -58,7 +58,7 @@ const checkDevPortal = async () => {
 
 const cloneRepo = async () => {
   try {
-    await invoke('execute_command', { command: 'git clone git@github.com:espressif/developer-portal.git ~/.espressif/devportal' });
+    await invoke('clone_devportal_repo');
     checkDevPortal();
   } catch (error) {
     console.error(error);

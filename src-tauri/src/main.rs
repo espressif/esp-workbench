@@ -433,6 +433,7 @@ fn main() {
             save_author,
             launch_hugo,
             restart_hugo,
+            clone_devportal_repo
         ])
         .setup(|app| {
             // Initialize the logging system

@@ -2,6 +2,7 @@ use async_std::sync::{Arc, Mutex};
 use tauri::{State, AppHandle};
 use crate::Author;
 use crate::external_command::run_external_command_with_progress;
+use std::path::PathBuf;
 
 pub struct HugoState {
     pub is_running: Arc<Mutex<bool>>,
@@ -113,4 +114,20 @@ pub async fn delete_author(file_name: String) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub async fn clone_devportal_repo(app: AppHandle) -> Result<String, String> {
+    // Expand the tilde to the full path
+    let home_dir = dirs::home_dir().ok_or("Failed to get home directory")?;
+    let target_dir = home_dir.join(".espressif/devportal");
+
+    // Execute git clone command and stream output to frontend
+    let result = run_external_command_with_progress(app.clone(), "git", &["clone", "git@github.com:espressif/developer-portal.git", target_dir.to_str().unwrap()], "git-progress").await;
+
+    if result.is_err() {
+        return Err("Failed to clone repository".to_string());
+    }
+
+    Ok("Repository cloned successfully".into())
 }
