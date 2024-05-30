@@ -118,19 +118,3 @@ const cancelEdit = () => {
 
 onMounted(checkDevPortal);
 </script>
-
-<style scoped>
-.developer-portal-contribute {
-  text-align: left;
-}
-
-.author {
-  margin-bottom: 20px;
-}
-
-input, textarea {
-  display: block;
-  margin-bottom: 10px;
-  width: 100%;
-}
-</style>
