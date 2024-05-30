@@ -2,8 +2,8 @@
   <div class="developer-portal-contribute">
     <h2>Developer Portal</h2>
     <div v-if="isDevPortalPresent">
-      <button @click="launchHugo">Launch Hugo</button>
       <button @click="newAuthor">New Author</button>
+      <button @click="launchHugo">Launch Hugo</button>
       <div v-if="authors.length">
         <h3>Authors</h3>
         <div v-for="author in authors" :key="author.name" class="author">
@@ -21,15 +21,20 @@
       <p>Developer Portal directory is not present.</p>
       <button @click="cloneRepo">Clone Repository</button>
     </div>
-    <div v-if="showEditForm">
-      <h3>{{ editFormTitle }}</h3>
-      <input v-model="editAuthorData.name" placeholder="Name" />
-      <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
-      <div v-for="(social, index) in editAuthorData.social" :key="index">
-        <input v-model="editAuthorData.social[index].url" placeholder="Social URL" />
+
+    <!-- Modal for adding/editing authors -->
+    <div v-if="showEditForm" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="cancelEdit">&times;</span>
+        <h3>{{ editFormTitle }}</h3>
+        <input v-model="editAuthorData.name" placeholder="Name" />
+        <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
+        <div v-for="(social, index) in editAuthorData.social" :key="index">
+          <input v-model="editAuthorData.social[index].url" placeholder="Social URL" />
+        </div>
+        <button @click="saveAuthor">Save</button>
+        <button @click="cancelEdit">Cancel</button>
       </div>
-      <button @click="saveAuthor">Save</button>
-      <button @click="cancelEdit">Cancel</button>
     </div>
   </div>
 </template>
