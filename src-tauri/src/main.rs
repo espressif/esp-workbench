@@ -28,6 +28,12 @@ use tauri::{State, Window};
 use serialport::available_ports;
 use sysinfo::{DiskExt, System, SystemExt};
 
+mod commands;
+mod models;
+
+use commands::*;
+use models::*;
+
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -37,13 +43,6 @@ enum Error {
     // Add a PoisonError, but we implement it manually later
     // #[error("the mutex was poisoned")]
     // PoisonError(String),
-}
-
-#[tauri::command]
-async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
-    let mut state = state_mutex.lock().unwrap();
-    state.builder = BuilderState::Abort;
-    Ok("ok".to_string())
 }
 
 // Command to compress directories into an archive file.
@@ -404,31 +403,6 @@ async fn check_devportal() -> Result<bool, String> {
   Ok(std::path::Path::new(&dirs::home_dir().unwrap().join(".espressif/devportal")).exists())
 }
 
-#[tauri::command]
-async fn get_authors() -> Result<Vec<Author>, String> {
-  // Implement the logic to read authors from data/authors
-  // Example implementation:
-  let authors_path = dirs::home_dir().unwrap().join(".espressif/devportal/data/authors");
-  let mut authors = Vec::new();
-  for entry in std::fs::read_dir(authors_path).map_err(|e| e.to_string())? {
-    let entry = entry.map_err(|e| e.to_string())?;
-    let path = entry.path();
-    if path.is_file() {
-      let author: Author = serde_json::from_reader(std::fs::File::open(path).map_err(|e| e.to_string())?)
-        .map_err(|e| e.to_string())?;
-      authors.push(author);
-    }
-  }
-  Ok(authors)
-}
-
-#[derive(serde::Serialize, serde::Deserialize)]
-struct Author {
-  name: String,
-  image: String,
-  bio: String,
-  social: Vec<std::collections::HashMap<String, String>>,
-}
 
 
 fn main() {
