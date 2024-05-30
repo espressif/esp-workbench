@@ -46,7 +46,7 @@ async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, 
     Ok("ok".to_string())
 }
 
-// Command to copress directories into a archive file.
+// Command to compress directories into an archive file.
 #[tauri::command]
 async fn compress(
     window: Window,
@@ -80,7 +80,7 @@ async fn compress(
     }
 }
 
-// Command to decompress a archive file into a directory.
+// Command to decompress an archive file into a directory.
 #[tauri::command]
 async fn decompress(
     window: Window,
@@ -206,7 +206,7 @@ async fn get_available_idf_versions() -> Result<String, String> {
     Ok(js_versions_file[object_start..object_end].to_string())
 }
 
-// Comand to get the current user home
+// Command to get the current user home
 #[tauri::command]
 async fn get_user_home() -> Result<String, ()> {
     match dirs::home_dir() {
@@ -338,7 +338,7 @@ async fn get_disk_usage() -> Result<Vec<String>, ()> {
     Ok(disk_info)
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 struct ConnectedPort {
     port_name: String,
     product: String,
@@ -397,6 +397,39 @@ async fn execute_command(command: String) -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+async fn check_devportal() -> Result<bool, String> {
+  // Implement the logic to check if the devportal directory exists
+  // Example: Check if ~/.espressif/devportal exists
+  Ok(std::path::Path::new(&dirs::home_dir().unwrap().join(".espressif/devportal")).exists())
+}
+
+#[tauri::command]
+async fn get_authors() -> Result<Vec<Author>, String> {
+  // Implement the logic to read authors from data/authors
+  // Example implementation:
+  let authors_path = dirs::home_dir().unwrap().join(".espressif/devportal/data/authors");
+  let mut authors = Vec::new();
+  for entry in std::fs::read_dir(authors_path).map_err(|e| e.to_string())? {
+    let entry = entry.map_err(|e| e.to_string())?;
+    let path = entry.path();
+    if path.is_file() {
+      let author: Author = serde_json::from_reader(std::fs::File::open(path).map_err(|e| e.to_string())?)
+        .map_err(|e| e.to_string())?;
+      authors.push(author);
+    }
+  }
+  Ok(authors)
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct Author {
+  name: String,
+  image: String,
+  bio: String,
+  social: Vec<std::collections::HashMap<String, String>>,
+}
+
 
 fn main() {
     tauri::Builder::default()
@@ -420,7 +453,9 @@ fn main() {
             stop_monitor,
             check_rust_support,
             install_rust_support,
-            get_platform
+            get_platform,
+            check_devportal,
+            get_authors
         ])
         .setup(|app| {
             // Initialize the logging system
