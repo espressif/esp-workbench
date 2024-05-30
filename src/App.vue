@@ -4,6 +4,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
 import HomeIcon from "./components/HomeIcon.vue";
 import ErrorMessage from './components/ErrorMessage.vue';
+import Console from './components/Console.vue';
 
 const appVersion = ref('');
 const errorMessage = ref("");
@@ -26,8 +27,6 @@ onMounted(() => {
 
   fetchVersion();
 });
-
-
 </script>
 
 <template>
@@ -47,6 +46,7 @@ onMounted(() => {
       </div>
       <div class="version">Version: {{ appVersion }}</div>
     </main>
+    <Console /> <!-- Add the Console component here -->
   </div>
 </template>
 

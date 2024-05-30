@@ -368,6 +368,36 @@ async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
     esp32s
 }
 
+#[tauri::command]
+async fn execute_command(command: String) -> Result<String, String> {
+    use std::process::Command;
+
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(&["/C", &command])
+            .output()
+    } else {
+        Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()
+    };
+
+    match output {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            if output.status.success() {
+                Ok(stdout)
+            } else {
+                Err(stderr)
+            }
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
@@ -375,6 +405,7 @@ fn main() {
             compress,
             decompress,
             download_esp_idf,
+            execute_command,
             get_connected_serial_devices,
             get_disk_usage,
             get_user_home,
