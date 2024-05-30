@@ -1,14 +1,17 @@
 <template>
-  <div v-show="isVisible" class="console">
-    <div class="console-output" ref="consoleOutput">
-      <div v-for="log in logs" :key="log.id">{{ log.message }}</div>
+  <div>
+    <div v-show="isVisible" class="console">
+      <div class="console-output" ref="consoleOutput">
+        <div v-for="log in logs" :key="log.id">{{ log.message }}</div>
+      </div>
+      <input
+        type="text"
+        v-model="command"
+        @keyup.enter="executeCommand"
+        placeholder="Enter command"
+      />
     </div>
-    <input
-      type="text"
-      v-model="command"
-      @keyup.enter="executeCommand"
-      placeholder="Enter command"
-    />
+    <button class="toggle-button" @click="toggleConsole">Toggle Console</button>
   </div>
 </template>
 
@@ -82,7 +85,7 @@ onBeforeUnmount(() => {
   left: 0;
   width: 100%;
   max-height: 50%;
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.8); /* Partially transparent background */
   color: limegreen;
   overflow: auto;
   padding: 10px;
@@ -93,14 +96,32 @@ onBeforeUnmount(() => {
 .console-output {
   max-height: 80%;
   overflow-y: auto;
+  text-align: left; /* Align text to the left */
 }
 
 input[type="text"] {
-  width: 100%;
+  width: calc(100% - 110px); /* Adjust width to avoid overlap with the button */
   padding: 5px;
   margin-top: 10px;
   background-color: black;
   color: limegreen;
   border: 1px solid limegreen;
+}
+
+.toggle-button {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid limegreen;
+  color: limegreen;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 5px 10px;
+  z-index: 10000; /* Ensure the button is above other elements, including the console */
+}
+
+.toggle-button:hover {
+  color: white;
 }
 </style>
