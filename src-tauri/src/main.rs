@@ -419,7 +419,6 @@ fn main() {
             get_esp_idf_list,
             get_esp_idf_tools_dir,
             get_available_idf_versions,
-            abort_build,
             run_esp_idf_install_script,
             start_flash,
             stop_flash,
@@ -429,7 +428,10 @@ fn main() {
             install_rust_support,
             get_platform,
             check_devportal,
-            get_authors
+            get_authors,
+            save_author,
+            launch_hugo,
+            restart_hugo,
         ])
         .setup(|app| {
             // Initialize the logging system

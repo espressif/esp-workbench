@@ -38,7 +38,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
-import { appWindow } from '@tauri-apps/api/window';
 
 const isDevPortalPresent = ref(false);
 const authors = ref([]);
@@ -67,7 +66,7 @@ const cloneRepo = async () => {
 
 const launchHugo = async () => {
   try {
-    await invoke('execute_command', { command: 'hugo server --source ~/.espressif/devportal' });
+    await invoke('launch_hugo');
     isHugoRunning.value = true;
   } catch (error) {
     console.error(error);
@@ -78,11 +77,12 @@ const saveAuthor = async (index: number) => {
   try {
     const author = authors.value[index];
     const fileName = `${author.name.toLowerCase().replace(/ /g, '-')}.json`;
-    await invoke('execute_command', {
-      command: `echo '${JSON.stringify(author)}' > ~/.espressif/devportal/data/authors/${fileName}`
-    });
+    await invoke('save_author', { author, fileName });
     editIndex.value = -1;
     checkDevPortal();
+    if (isHugoRunning.value) {
+      await invoke('restart_hugo');
+    }
   } catch (error) {
     console.error(error);
   }
