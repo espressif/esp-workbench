@@ -35,7 +35,6 @@ onMounted(() => {
       <router-link to="/" class="nav-icon">
         <HomeIcon />
       </router-link>
-      <!-- Add more navigation links/icons here if needed -->
     </aside>
     <main>
       <ErrorMessage v-if="errorMessage" :message="errorMessage" @dismiss="errorMessage = ''" />
@@ -46,7 +45,7 @@ onMounted(() => {
       </div>
       <div class="version">Version: {{ appVersion }}</div>
     </main>
-    <Console /> <!-- Add the Console component here -->
+    <Console />
   </div>
 </template>
 
