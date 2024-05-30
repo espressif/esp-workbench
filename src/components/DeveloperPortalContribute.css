@@ -61,3 +61,25 @@ input, textarea {
   text-decoration: none;
   cursor: pointer;
 }
+
+.social-input {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.social-input select {
+  margin-right: 10px;
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+  font-size: 14px;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+.social-input input {
+  flex: 1;
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+  font-size: 14px;
+  padding: 5px;
+  border-radius: 4px;
+}
