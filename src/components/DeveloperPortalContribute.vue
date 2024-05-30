@@ -12,7 +12,7 @@
           <div v-for="social in author.social" :key="Object.keys(social)[0]">
             <a :href="Object.values(social)[0]">{{ Object.keys(social)[0] }}</a>
           </div>
-          <button @click="editAuthor(author)">Edit</button>
+          <button @click="editAuthor(author, getFileName(author.name))">Edit</button>
           <button @click="confirmDelete(author)">Delete</button>
         </div>
       </div>
@@ -29,9 +29,18 @@
         <h3>{{ editFormTitle }}</h3>
         <input v-model="editAuthorData.name" placeholder="Name" />
         <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
-        <div v-for="(social, index) in editAuthorData.social" :key="index">
+        <div v-for="(social, index) in editAuthorData.social" :key="index" class="social-input">
+          <select v-model="social.key">
+            <option value="linkedin">LinkedIn</option>
+            <option value="twitter">Twitter</option>
+            <option value="instagram">Instagram</option>
+            <option value="medium">Medium</option>
+            <option value="github">GitHub</option>
+            <option value="link">Link</option>
+          </select>
           <input v-model="social.url" placeholder="Social URL" />
         </div>
+        <button @click="addSocialField">Add Social Field</button>
         <button @click="saveAuthor">Save</button>
         <button @click="cancelEdit">Cancel</button>
       </div>
@@ -49,6 +58,11 @@ const authors = ref([]);
 const showEditForm = ref(false);
 const editAuthorData = ref({ name: '', bio: '', social: [] });
 const editFormTitle = ref('');
+let originalFileName = '';
+
+const getFileName = (name: string) => {
+  return `${name.toLowerCase().replace(/ /g, '-')}.json`;
+};
 
 const checkDevPortal = async () => {
   try {
@@ -86,7 +100,7 @@ const confirmDelete = (author: any) => {
 
 const deleteAuthor = async (author: any) => {
   try {
-    const fileName = `${author.name.toLowerCase().replace(/ /g, '-')}.json`;
+    const fileName = getFileName(author.name);
     await invoke('delete_author', { file_name: fileName });
     checkDevPortal(); // Refresh the list of authors
   } catch (error) {
@@ -94,26 +108,39 @@ const deleteAuthor = async (author: any) => {
   }
 };
 
-const editAuthor = (author: any) => {
+const editAuthor = (author: any, fileName: string) => {
   editAuthorData.value = {
     name: author.name,
     bio: author.bio,
-    social: author.social.map((s: any) => ({ url: Object.values(s)[0] }))
+    social: author.social.map((s: any) => ({ key: Object.keys(s)[0], url: Object.values(s)[0] }))
   };
+  originalFileName = fileName;
   editFormTitle.value = `Edit Author: ${author.name}`;
   showEditForm.value = true;
 };
 
 const newAuthor = () => {
   editAuthorData.value = { name: '', bio: '', social: [] };
+  originalFileName = '';
   editFormTitle.value = 'New Author';
   showEditForm.value = true;
 };
 
+const addSocialField = () => {
+  editAuthorData.value.social.push({ key: '', url: '' });
+};
+
 const saveAuthor = async () => {
   try {
-    const fileName = `${editAuthorData.value.name.toLowerCase().replace(/ /g, '-')}.json`;
-    await invoke('save_author', { author: editAuthorData.value, file_name: fileName });
+    let fileName = originalFileName;
+    if (!fileName) {
+      fileName = getFileName(editAuthorData.value.name);
+    }
+    const social = editAuthorData.value.social.reduce((acc: any[], s: any) => {
+      acc.push({ [s.key]: s.url });
+      return acc;
+    }, []);
+    await invoke('save_author', { author: { ...editAuthorData.value, social }, fileName: fileName });
     showEditForm.value = false;
     checkDevPortal(); // Refresh the list of authors
   } catch (error) {
@@ -127,3 +154,5 @@ const cancelEdit = () => {
 
 onMounted(checkDevPortal);
 </script>
+
+<style scoped src="./DeveloperPortalContribute.css"></style>
