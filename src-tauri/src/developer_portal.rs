@@ -3,6 +3,8 @@ use tauri::{AppHandle, State};
 use crate::Author;
 use crate::external_command::run_external_command_with_progress;
 use std::path::PathBuf;
+use regex::Regex;
+use deunicode::deunicode;
 
 pub struct HugoState {
     pub is_running: Arc<Mutex<bool>>,
@@ -85,14 +87,23 @@ pub async fn restart_hugo(state: State<'_, HugoState>, app: AppHandle, repo_path
     Ok("Hugo server restarted".to_string())
 }
 
+// Helper function to normalize and create file name
+fn create_file_name(name: &str) -> String {
+    let re = Regex::new(r"[^a-zA-Z0-9-]").unwrap();
+    let normalized_name = deunicode(name).to_lowercase().replace(" ", "-");
+    re.replace_all(&normalized_name, "").to_string()
+}
+
 #[tauri::command]
-pub async fn save_author(author: Author, file_name: String, repo_path: Option<String>) -> Result<(), String> {
+pub async fn save_author(author: Author, original_file_name: Option<String>, repo_path: Option<String>) -> Result<(), String> {
     let repo_dir = repo_path.unwrap_or_else(|| get_default_repo_dir().to_str().unwrap().to_string());
     let expanded_repo_dir = expand_tilde(&repo_dir);
     let authors_dir = expanded_repo_dir.join(AUTHORS_DIR);
     let content_dir = expanded_repo_dir.join(CONTENT_DIR);
-    let file_path = authors_dir.join(&file_name);
-    let index_path = content_dir.join(file_name.replace(".json", "")).join("_index.md");
+
+    let file_name = original_file_name.unwrap_or_else(|| create_file_name(&author.name));
+    let file_path = authors_dir.join(format!("{}.json", file_name));
+    let index_path = content_dir.join(file_name).join("_index.md");
 
     std::fs::write(file_path, serde_json::to_string_pretty(&author).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
