@@ -29,13 +29,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, onMounted, watch } from 'vue';
+import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 
 const props = defineProps({
   githubUsername: String,
   initialRepoPath: String,
 });
+
+const emit = defineEmits(['cloningComplete']);
 
 const githubUsername = ref(props.githubUsername);
 const repoPath = ref(props.initialRepoPath || '~/.espressif/developer-portal');
@@ -60,7 +62,7 @@ const cloneRepo = async (repoUrl) => {
   try {
     await invoke('save_settings', { githubUsername: githubUsername.value, developerPortalRepoPath: repoPath.value }); // Save the new path
     await invoke('clone_devportal_repo', { repoUrl: repoUrl, repoPath: repoPath.value });
-    alert('Repository cloned successfully!');
+    emit('cloningComplete');
   } catch (error) {
     console.error(error);
   }

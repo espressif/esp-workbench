@@ -21,7 +21,8 @@
       <p>Developer Portal directory is not present.</p>
       <CloneRepository
         :githubUsername="githubUsername"
-        :initial-repo-path="repoPath"
+        :initialRepoPath="repoPath"
+        @cloningComplete="checkDevPortal"
       />
     </div>
 
@@ -58,7 +59,7 @@ const getFileName = (name: string) => {
 
 const checkDevPortal = async () => {
   try {
-    isDevPortalPresent.value = await invoke('check_devportal');
+    isDevPortalPresent.value = await invoke('check_devportal', { repoPath: repoPath.value });
     if (isDevPortalPresent.value) {
       authors.value = await invoke('get_authors', { repoPath: repoPath.value });
     }
@@ -79,7 +80,7 @@ const loadSettings = async () => {
 
 const launchHugo = async () => {
   try {
-    await invoke('launch_hugo', { repoPath: repoPath.value });
+    await invoke('launch_hugo', { repo_path: repoPath.value });
   } catch (error) {
     console.error(error);
   }
@@ -145,7 +146,6 @@ onMounted(async () => {
   await loadSettings();
   await checkDevPortal();
 });
-
 </script>
 
 <style scoped src="./DeveloperPortalContribute.css"></style>
