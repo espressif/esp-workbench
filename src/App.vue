@@ -2,10 +2,11 @@
 import { onMounted, ref } from "vue";
 import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
-import HomeIcon from "./components/HomeIcon.vue";
+import HomeIcon from "./icons/HomeIcon.vue";
+import ConsoleIcon from './icons/ConsoleIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
 import Console from "./components/Console.vue";
 import ErrorMessage from './components/ErrorMessage.vue';
-import ConsoleIcon from './assets/console-icon.svg';
 
 const appVersion = ref('');
 const errorMessage = ref("");
@@ -41,8 +42,11 @@ const toggleConsole = () => {
       <router-link to="/" class="nav-icon">
         <HomeIcon />
       </router-link>
+      <router-link to="/settings" class="nav-icon">
+        <SettingsIcon />
+      </router-link>
       <button class="toggle-button" @click="toggleConsole">
-        <img :src="ConsoleIcon" alt="Console Icon" />
+        <ConsoleIcon />
       </button>
       <div class="version">Version: {{ appVersion }}</div>
     </aside>

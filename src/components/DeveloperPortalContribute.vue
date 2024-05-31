@@ -19,7 +19,10 @@
     </div>
     <div v-else>
       <p>Developer Portal directory is not present.</p>
-      <button @click="cloneRepo">Clone Repository</button>
+      <CloneRepository
+        :githubUsername="githubUsername"
+        :initial-repo-path="repoPath"
+      />
     </div>
 
     <!-- Use the AuthorForm component -->
@@ -38,6 +41,7 @@ import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import './DeveloperPortalContribute.css';
 import AuthorForm from './AuthorForm.vue';
+import CloneRepository from './CloneRepository.vue';
 
 const isDevPortalPresent = ref(false);
 const authors = ref([]);
@@ -45,6 +49,8 @@ const showEditForm = ref(false);
 const editAuthorData = ref({ name: '', bio: '', social: [] });
 const editFormTitle = ref('');
 let originalFileName = '';
+let githubUsername = ref('');
+let repoPath = ref('');
 
 const getFileName = (name: string) => {
   return `${name.toLowerCase().replace(/ /g, '-')}.json`;
@@ -54,17 +60,18 @@ const checkDevPortal = async () => {
   try {
     isDevPortalPresent.value = await invoke('check_devportal');
     if (isDevPortalPresent.value) {
-      authors.value = await invoke('get_authors');
+      authors.value = await invoke('get_authors', { repoPath: repoPath.value });
     }
   } catch (error) {
     console.error(error);
   }
 };
 
-const cloneRepo = async () => {
+const loadSettings = async () => {
   try {
-    await invoke('clone_devportal_repo');
-    checkDevPortal();
+    const settings = await invoke('load_settings');
+    githubUsername.value = settings.github_username || '';
+    repoPath.value = settings.developer_portal_repo_path || '~/.espressif/developer-portal';
   } catch (error) {
     console.error(error);
   }
@@ -72,7 +79,7 @@ const cloneRepo = async () => {
 
 const launchHugo = async () => {
   try {
-    await invoke('launch_hugo');
+    await invoke('launch_hugo', { repoPath: repoPath.value });
   } catch (error) {
     console.error(error);
   }
@@ -87,7 +94,7 @@ const confirmDelete = (author: any) => {
 const deleteAuthor = async (author: any) => {
   try {
     const fileName = getFileName(author.name);
-    await invoke('delete_author', { file_name: fileName });
+    await invoke('delete_author', { fileName: fileName, repoPath: repoPath.value });
     checkDevPortal(); // Refresh the list of authors
   } catch (error) {
     console.error(error);
@@ -122,7 +129,7 @@ const saveAuthor = async (authorData: any) => {
       acc.push({ [s.key]: s.url });
       return acc;
     }, []);
-    await invoke('save_author', { author: { ...authorData, social }, fileName: fileName });
+    await invoke('save_author', { author: { ...authorData, social }, fileName: fileName, repoPath: repoPath.value });
     showEditForm.value = false;
     checkDevPortal(); // Refresh the list of authors
   } catch (error) {
@@ -134,7 +141,11 @@ const cancelEdit = () => {
   showEditForm.value = false;
 };
 
-onMounted(checkDevPortal);
+onMounted(async () => {
+  await loadSettings();
+  await checkDevPortal();
+});
+
 </script>
 
 <style scoped src="./DeveloperPortalContribute.css"></style>

@@ -42,7 +42,12 @@ const routes: Array<RouteRecordRaw> = [
     path: "/developer-portal/contribute",
     name: "DeveloperPortalContribute",
     component: () => import("./components/DeveloperPortalContribute.vue"),
-  }
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("./components/Settings.vue"),
+  },
 ];
 
 const router = createRouter({

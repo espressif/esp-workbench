@@ -1,0 +1,33 @@
+.clone-repository {
+  margin: 20px 0;
+}
+
+.repo-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.repo-option input {
+  flex: 1;
+  margin-right: 10px;
+  padding: 5px;
+  font-family: 'Consolas', 'Courier New', Courier, monospace;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.repo-option button {
+  padding: 5px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+}
+
+.repo-option button:hover {
+  background-color: #0056b3;
+}

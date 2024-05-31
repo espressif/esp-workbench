@@ -28,11 +28,13 @@ use tauri::{State, Window};
 use serialport::available_ports;
 use sysinfo::{DiskExt, System, SystemExt};
 
-mod commands;
+mod developer_portal;
 mod models;
+mod settings;
 
-use commands::*;
+use developer_portal::*;
 use models::*;
+use settings::*;
 
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
@@ -396,15 +398,6 @@ async fn execute_command(command: String) -> Result<String, String> {
     }
 }
 
-#[tauri::command]
-async fn check_devportal() -> Result<bool, String> {
-  // Implement the logic to check if the devportal directory exists
-  // Example: Check if ~/.espressif/devportal exists
-  Ok(std::path::Path::new(&dirs::home_dir().unwrap().join(".espressif/devportal")).exists())
-}
-
-
-
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
@@ -433,7 +426,9 @@ fn main() {
             save_author,
             launch_hugo,
             restart_hugo,
-            clone_devportal_repo
+            clone_devportal_repo,
+            load_settings,
+            save_settings
         ])
         .setup(|app| {
             // Initialize the logging system
