@@ -22,29 +22,14 @@
       <button @click="cloneRepo">Clone Repository</button>
     </div>
 
-    <!-- Modal for adding/editing authors -->
-    <div v-if="showEditForm" class="modal">
-      <div class="modal-content">
-        <span class="close" @click="cancelEdit">&times;</span>
-        <h3>{{ editFormTitle }}</h3>
-        <input v-model="editAuthorData.name" placeholder="Name" />
-        <textarea v-model="editAuthorData.bio" placeholder="Bio"></textarea>
-        <div v-for="(social, index) in editAuthorData.social" :key="index" class="social-input">
-          <select v-model="social.key">
-            <option value="linkedin">LinkedIn</option>
-            <option value="twitter">Twitter</option>
-            <option value="instagram">Instagram</option>
-            <option value="medium">Medium</option>
-            <option value="github">GitHub</option>
-            <option value="link">Link</option>
-          </select>
-          <input v-model="social.url" placeholder="Social URL" />
-        </div>
-        <button @click="addSocialField">Add Social Field</button>
-        <button @click="saveAuthor">Save</button>
-        <button @click="cancelEdit">Cancel</button>
-      </div>
-    </div>
+    <!-- Use the AuthorForm component -->
+    <AuthorForm
+      :show="showEditForm"
+      :author="editAuthorData"
+      :formTitle="editFormTitle"
+      @save="saveAuthor"
+      @cancel="cancelEdit"
+    />
   </div>
 </template>
 
@@ -52,6 +37,7 @@
 import { ref, onMounted } from 'vue';
 import { invoke } from '@tauri-apps/api/tauri';
 import './DeveloperPortalContribute.css';
+import AuthorForm from './AuthorForm.vue';
 
 const isDevPortalPresent = ref(false);
 const authors = ref([]);
@@ -126,21 +112,17 @@ const newAuthor = () => {
   showEditForm.value = true;
 };
 
-const addSocialField = () => {
-  editAuthorData.value.social.push({ key: '', url: '' });
-};
-
-const saveAuthor = async () => {
+const saveAuthor = async (authorData: any) => {
   try {
     let fileName = originalFileName;
     if (!fileName) {
-      fileName = getFileName(editAuthorData.value.name);
+      fileName = getFileName(authorData.name);
     }
-    const social = editAuthorData.value.social.reduce((acc: any[], s: any) => {
+    const social = authorData.social.reduce((acc: any[], s: any) => {
       acc.push({ [s.key]: s.url });
       return acc;
     }, []);
-    await invoke('save_author', { author: { ...editAuthorData.value, social }, fileName: fileName });
+    await invoke('save_author', { author: { ...authorData, social }, fileName: fileName });
     showEditForm.value = false;
     checkDevPortal(); // Refresh the list of authors
   } catch (error) {
