@@ -2,11 +2,15 @@
 import { onMounted, ref } from "vue";
 import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
-import HomeIcon from "./components/HomeIcon.vue";
+import HomeIcon from "./icons/HomeIcon.vue";
+import ConsoleIcon from './icons/ConsoleIcon.vue';
+import SettingsIcon from './icons/SettingsIcon.vue';
+import Console from "./components/Console.vue";
 import ErrorMessage from './components/ErrorMessage.vue';
 
 const appVersion = ref('');
 const errorMessage = ref("");
+const isConsoleVisible = ref(false);
 
 async function fetchVersion() {
   appVersion.value = await getVersion();
@@ -27,7 +31,9 @@ onMounted(() => {
   fetchVersion();
 });
 
-
+const toggleConsole = () => {
+  isConsoleVisible.value = !isConsoleVisible.value;
+};
 </script>
 
 <template>
@@ -36,7 +42,13 @@ onMounted(() => {
       <router-link to="/" class="nav-icon">
         <HomeIcon />
       </router-link>
-      <!-- Add more navigation links/icons here if needed -->
+      <router-link to="/settings" class="nav-icon">
+        <SettingsIcon />
+      </router-link>
+      <button class="toggle-button" @click="toggleConsole">
+        <ConsoleIcon />
+      </button>
+      <div class="version">Version: {{ appVersion }}</div>
     </aside>
     <main>
       <ErrorMessage v-if="errorMessage" :message="errorMessage" @dismiss="errorMessage = ''" />
@@ -45,49 +57,9 @@ onMounted(() => {
       <div class="router-view">
         <router-view />
       </div>
-      <div class="version">Version: {{ appVersion }}</div>
     </main>
+    <Console :is-visible="isConsoleVisible" />
   </div>
 </template>
 
-<style scoped>
-.router-view {
-  height: 78vh;
-}
-.version {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  font-size: xx-small;
-}
-
-.container {
-  display: flex;;
-}
-
-.sidebar {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  flex-direction: column;
-  align-items: center;
-  /* background-color: #555; */
-  /* color: #fff; */
-  width: 60px;
-  padding: 10px 10px;
-}
-
-.nav-icon {
-  margin-bottom: 20px;
-}
-
-.icon {
-  width: 30px;
-  height: 30px;
-}
-
-main {
-  flex: 1;
-  padding-left: 20px;
-}
-</style>
+<style scoped src="./App.css"></style>
