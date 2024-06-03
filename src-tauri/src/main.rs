@@ -428,7 +428,10 @@ fn main() {
             restart_hugo,
             clone_devportal_repo,
             load_settings,
-            save_settings
+            save_settings,
+            get_articles,
+            save_article,
+            delete_article
         ])
         .setup(|app| {
             // Initialize the logging system
