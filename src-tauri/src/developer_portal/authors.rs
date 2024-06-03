@@ -26,6 +26,13 @@ fn create_file_name(name: &str) -> String {
     re.replace_all(&normalized_name, "").to_string()
 }
 
+fn create_author_page_content(name: &str) -> String {
+    format!(
+        "---\ntitle: \"{}\"\n---\n",
+        name
+    )
+}
+
 #[tauri::command]
 pub async fn save_author(author: Author, original_file_name: Option<String>, repo_path: Option<String>) -> Result<(), String> {
     let repo_dir = repo_path.unwrap_or_else(|| get_default_repo_dir().to_str().unwrap().to_string());
@@ -35,13 +42,13 @@ pub async fn save_author(author: Author, original_file_name: Option<String>, rep
 
     let file_name = original_file_name.unwrap_or_else(|| create_file_name(&author.name));
     let file_path = authors_dir.join(format!("{}.json", file_name));
-    let index_path = content_dir.join(file_name).join("_index.md");
+    let index_path = content_dir.join(&file_name).join("_index.md");
 
-    std::fs::write(file_path, serde_json::to_string_pretty(&author).map_err(|e| e.to_string())?)
+    std::fs::write(&file_path, serde_json::to_string_pretty(&author).map_err(|e| e.to_string())?)
         .map_err(|e| e.to_string())?;
 
     std::fs::create_dir_all(index_path.parent().unwrap()).map_err(|e| e.to_string())?;
-    std::fs::write(index_path, &author.name).map_err(|e| e.to_string())?;
+    std::fs::write(&index_path, create_author_page_content(&author.name)).map_err(|e| e.to_string())?;
 
     Ok(())
 }
