@@ -1,5 +1,9 @@
 # ESP Workbench
 
+## Warning!
+
+The repo is deprecated, pleas use: https://github.com/espressif/idf-im-ui
+
 Get all important information for Embedded Development with ESP32 and maintain the development environment.
 
 Check out releases for binary version.
