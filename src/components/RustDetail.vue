@@ -67,15 +67,18 @@ onMounted(async () => {
   isWindows.value = platform === 'win32';
 });
 
+const supportedChipsXtensa = "ESP32, ESP32-S2, ESP32-S3";
+const supportedChipsRisc = "ESP32-C2, ESP32-C3, ESP32-C6, ESP32-H2"
+
 const updateSupportedChips = () => {
   // Depending on the selected toolchain, update the supported chips
   // This is just a dummy logic for demo purposes.
   supportedChips.value = (selectedToolchain.value === "xtensa")
-    ? "ESP32, ESP32-S2, ESP32-S3"
-    : "ESP32-C2, ESP32-C3, ESP32-C6, ESP32-H2";
+    ? supportedChipsXtensa
+    : supportedChipsRisc;
 }
 
-let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
+let supportedChips = ref(supportedChipsXtensa);  // Default for Xtensa
 </script>
 
 <template>
