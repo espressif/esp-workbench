@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
 import { invoke } from "@tauri-apps/api/tauri";
-import { jsonrepair } from 'jsonrepair';
 
 const props = defineProps({
   selectedVersion: String,
@@ -67,7 +66,7 @@ const targetsOfSelectedVersion = computed(() => {
 onMounted(() => {
   invoke("get_available_idf_versions").then((response) => {
     try {
-      let data = JSON.parse(jsonrepair(response as string));
+      let data = JSON.parse(response as string);
       versionsData.value = data;
     } catch (error) {
       console.error(error);
