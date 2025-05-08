@@ -7,6 +7,8 @@ import EspIdfList from './EspIdfList.vue';
 import ConnectedDevicesList from "./ConnectedDevicesList.vue";
 import RustDashboardTile from "./RustDashboardTile.vue";
 import BooksTile from "./BooksTile.vue";
+import DeveloperPortalTile from "./DeveloperPortalTile.vue";
+import './Dashboard.css';
 
 let versions = ref<string[]>([]);
 
@@ -29,8 +31,6 @@ onMounted(() => {
     console.error(error);
   });
 });
-
-
 </script>
 
 <template>
@@ -50,54 +50,8 @@ onMounted(() => {
     <div class="tile">
       <books-tile />
     </div>
+    <div class="tile">
+      <developer-portal-tile />
+    </div>
   </div>
 </template>
-
-<style>
-.add-button {
-  display: inline-block;
-  padding: 10px 20px;
-  color: #fff;
-  background-color: #007bff;
-  border-radius: 5px;
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-}
-
-.add-button:hover {
-  background-color: #0056b3;
-}
-</style>
-
-<style scoped>
-
-
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 20px;
-}
-
-.tile {
-  border: 1px solid #ccc;
-  padding: 20px;
-  border-radius: 8px;
-  background-color: #f8f8f8;
-}
-
-.tile :deep(h2)::after {
-  content: '';
-  display: block;
-  height: 1px;
-  background-color: lightgray;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .tile {
-    background-color: #989898;
-  }
-}
-</style>

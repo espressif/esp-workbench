@@ -122,7 +122,7 @@ let supportedChips = ref("ESP32, ESP32-S2, ESP-S3");  // Default for Xtensa
         <img class="rust-wheel-image" :class="{ rotating: isInstalling }" src="../assets/esp-rs.png" alt="Installation in progress..." />
       </div>
       <div class="console-container">
-        <LogConsole />
+        <!-- <LogConsole /> -->
         <div class="button-container">
           <button @click="installRustSupport()" :disabled="isInstalling">Install Rust</button>
           <button @click="abortBuild()" :disabled="!isInstalling">Cancel</button>

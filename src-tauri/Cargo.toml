@@ -14,6 +14,7 @@ rust-version = "1.67.1"
 tauri-build = { version = "1.4", features = [] }
 
 [dependencies]
+async-std = "1.10.0"
 dirs = "5.0.1"
 fern = "0.6.2"
 futures = "0.3.28"
@@ -36,6 +37,8 @@ walkdir = "2.3.3"
 sysinfo = "0.29.7"
 serialport = { version = "4.2.1" }
 espflash = "2.0.1"
+regex = "1.10.4"
+deunicode = "1.6.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

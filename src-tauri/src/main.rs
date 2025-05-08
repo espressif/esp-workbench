@@ -28,6 +28,14 @@ use tauri::{State, Window};
 use serialport::available_ports;
 use sysinfo::{DiskExt, System, SystemExt};
 
+mod developer_portal;
+mod models;
+mod settings;
+
+use developer_portal::*;
+use models::*;
+use settings::*;
+
 // Create a custom Error that we can return in Results
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -39,14 +47,7 @@ enum Error {
     // PoisonError(String),
 }
 
-#[tauri::command]
-async fn abort_build(state_mutex: State<'_, Mutex<AppState>>) -> Result<String, ()> {
-    let mut state = state_mutex.lock().unwrap();
-    state.builder = BuilderState::Abort;
-    Ok("ok".to_string())
-}
-
-// Command to copress directories into a archive file.
+// Command to compress directories into an archive file.
 #[tauri::command]
 async fn compress(
     window: Window,
@@ -80,7 +81,7 @@ async fn compress(
     }
 }
 
-// Command to decompress a archive file into a directory.
+// Command to decompress an archive file into a directory.
 #[tauri::command]
 async fn decompress(
     window: Window,
@@ -206,7 +207,7 @@ async fn get_available_idf_versions() -> Result<String, String> {
     Ok(js_versions_file[object_start..object_end].to_string())
 }
 
-// Comand to get the current user home
+// Command to get the current user home
 #[tauri::command]
 async fn get_user_home() -> Result<String, ()> {
     match dirs::home_dir() {
@@ -338,7 +339,7 @@ async fn get_disk_usage() -> Result<Vec<String>, ()> {
     Ok(disk_info)
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 struct ConnectedPort {
     port_name: String,
     product: String,
@@ -368,20 +369,50 @@ async fn get_connected_serial_devices() -> Vec<ConnectedPort> {
     esp32s
 }
 
+#[tauri::command]
+async fn execute_command(command: String) -> Result<String, String> {
+    use std::process::Command;
+
+    let output = if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(&["/C", &command])
+            .output()
+    } else {
+        Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()
+    };
+
+    match output {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+            if output.status.success() {
+                Ok(stdout)
+            } else {
+                Err(stderr)
+            }
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
             compress,
             decompress,
+            delete_author,
             download_esp_idf,
+            execute_command,
             get_connected_serial_devices,
             get_disk_usage,
             get_user_home,
             get_esp_idf_list,
             get_esp_idf_tools_dir,
             get_available_idf_versions,
-            abort_build,
             run_esp_idf_install_script,
             start_flash,
             stop_flash,
@@ -389,7 +420,18 @@ fn main() {
             stop_monitor,
             check_rust_support,
             install_rust_support,
-            get_platform
+            get_platform,
+            check_devportal,
+            get_authors,
+            save_author,
+            launch_hugo,
+            restart_hugo,
+            clone_devportal_repo,
+            load_settings,
+            save_settings,
+            get_articles,
+            save_article,
+            delete_article
         ])
         .setup(|app| {
             // Initialize the logging system

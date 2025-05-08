@@ -163,7 +163,6 @@ pub async fn install_rustup(
         }
 
         run_external_command_with_progress(
-            window.clone(),
             app,
             &rustup_path,
             &args,
@@ -176,7 +175,6 @@ pub async fn install_rustup(
     {
         let args = vec!["-y"];
         run_external_command_with_progress(
-            window.clone(),
             app,
             &rustup_path,
             &args,
@@ -326,7 +324,6 @@ async fn install_rust_toolchain(
     }
 
     let result = run_external_command_with_progress(
-        window.clone(),
         app.clone(),
         &espup_path,
         &args,
@@ -373,7 +370,6 @@ async fn install_vc_tools_and_sdk(window: Window, app: tauri::AppHandle) -> Resu
         "Microsoft.VisualStudio.Component.Windows11SDK.22621",
     ];
     run_external_command_with_progress(
-        window,
         app,
         &dest_path.to_string_lossy(),
         &args,

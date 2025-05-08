@@ -110,5 +110,46 @@ button {
 }
 
 .path-input {
-    width: 30em;
+  width: 30em;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0; /* Make the background lighter */
+  width: 60px;
+  padding: 10px 10px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 10000; /* Ensure the sidebar is above other elements */
+}
+
+.nav-icon {
+  margin-bottom: 20px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+}
+
+main {
+  flex: 1;
+  padding-left: 20px;
+}
+
+.sidebar .toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sidebar .toggle-button img {
+  width: 30px;
+  height: 30px;
+  filter: invert(50%); /* Make the icon visible against the light background */
 }

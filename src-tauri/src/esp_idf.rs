@@ -31,7 +31,6 @@ pub fn run_install_script(
     {
         let args = vec![file_path.to_str().unwrap()];
         run_external_command_with_progress(
-            window.clone(),
             app.clone(),
             "bash",
             &args,
@@ -43,7 +42,6 @@ pub fn run_install_script(
     {
         let args = vec!["/c", file_path.to_str().unwrap()];
         run_external_command_with_progress(
-            window.clone(),
             app.clone(),
             "cmd",
             &args,

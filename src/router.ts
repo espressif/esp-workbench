@@ -32,7 +32,22 @@ const routes: Array<RouteRecordRaw> = [
     path: "/rust/book",
     name: "RustBook",
     component: () => import("./components/RustBook.vue"),
-  }
+  },
+  {
+    path: "/developer-portal/read",
+    name: "DeveloperPortalRead",
+    component: () => import("./components/DeveloperPortalRead.vue"),
+  },
+  {
+    path: "/developer-portal/contribute",
+    name: "DeveloperPortalContribute",
+    component: () => import("./components/DeveloperPortalContribute.vue"),
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("./components/Settings.vue"),
+  },
 ];
 
 const router = createRouter({
